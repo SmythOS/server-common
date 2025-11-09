@@ -5,14 +5,6 @@
 
 Reusable server components (middlewares, roles, utilities) for SmythOS server distributions. This package provides common functionality shared across SmythOS server applications, including agent loading, Swagger documentation, and utility functions.
 
-## 📦 Installation
-
-```bash
-npm install @smythos/server-common
-# or
-pnpm add @smythos/server-common
-```
-
 ## 🏗️ Architecture
 
 The package follows a modular architecture with three main component types:
