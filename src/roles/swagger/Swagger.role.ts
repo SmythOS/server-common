@@ -3,7 +3,6 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { ConnectorService } from '@smythos/sdk/core';
 import AgentLoader from '../../middlewares/AgentLoader.mw';
-import { constructServerUrl } from '../../utils/url.utils';
 
 export class SwaggerRole extends BaseRole {
     /**
@@ -15,7 +14,10 @@ export class SwaggerRole extends BaseRole {
      * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
      * Defaults to '/static/embodiment/swagger'.
      */
-    constructor(middlewares: express.RequestHandler[], options: { staticPath?: string } = { staticPath: '/static/embodiment/swagger' }) {
+    constructor(
+        middlewares: express.RequestHandler[],
+        options: { staticPath?: string; serverOrigin?: string | Function } = { staticPath: '/static/embodiment/swagger', serverOrigin: () => '' },
+    ) {
         super(middlewares, options);
     }
     public async mount(router: express.Router) {
@@ -24,14 +26,14 @@ export class SwaggerRole extends BaseRole {
         router.use('/', middlewares, async (req: any, res) => {
             //TODO : handle release switch : dev, prod, prod old versions [DONE]
             const agentData = (req as any)._agentData;
-            let domain = req.hostname;
             // const debugSessionEnabled = agent.debugSessionEnabled;
             const isTestDomain = agentData.usingTestDomain;
             //const openApiDocument = await getOpenAPIJSON(agentData, domain, req._agentVersion, false);
 
-            const server_url = constructServerUrl(domain);
+            const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
+
             const agentDataConnector = ConnectorService.getAgentDataConnector();
-            const openApiDocument = await agentDataConnector.getOpenAPIJSON(agentData, server_url, agentData.version, false);
+            const openApiDocument = await agentDataConnector.getOpenAPIJSON(agentData, serverOrigin, agentData.version, false);
 
             if (agentData?.auth?.method && agentData?.auth?.method != 'none') {
                 // Add or update security definitions

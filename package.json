@@ -19,6 +19,11 @@
         ".": {
             "import": "./dist/index.js",
             "types": "./dist/types/index.d.ts"
+        },
+        "./scripts/rollup-external": {
+            "import": "./scripts/rollup-external.js",
+            "require": "./scripts/rollup-external.js",
+            "default": "./scripts/rollup-external.js"
         }
     },
     "scripts": {
@@ -41,6 +46,7 @@
     "dependencies": {
         "@smythos/sdk": "^1.3.9",
         "dotenv": "^17.2.3",
+        "openapi-to-postmanv2": "^5.3.5",
         "swagger-ui-express": "^5.0.1"
     }
 }
