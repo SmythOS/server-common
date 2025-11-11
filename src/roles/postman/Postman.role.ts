@@ -5,7 +5,6 @@ import { ConnectorService } from '@smythos/sdk/core';
 
 import { BaseRole } from '../Base.role';
 import AgentLoader from '../../middlewares/AgentLoader.mw';
-import { constructServerUrl } from '../../utils/url.utils';
 
 export class PostmanRole extends BaseRole {
     /**
