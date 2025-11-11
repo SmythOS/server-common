@@ -27,9 +27,9 @@ export class PostmanRole extends BaseRole {
             let domain = req.hostname;
             const agentData = (req as any)._agentData;
             try {
-                const agentDataConnector = ConnectorService.getAgentDataConnector();
                 const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
 
+                const agentDataConnector = ConnectorService.getAgentDataConnector();
                 const openAPISpec = await agentDataConnector.getOpenAPIJSON(agentData, serverOrigin, agentData.version, false).catch((error) => {
                     console.error(error);
                     return { error: error.message };
