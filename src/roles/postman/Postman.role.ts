@@ -16,7 +16,7 @@ export class PostmanRole extends BaseRole {
      * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
      * Defaults to '/static/embodiment/swagger'.
      */
-    constructor(middlewares: express.RequestHandler[], options: Record<string, string | Function> = { serverOrigin: () => '' }) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | Function }) {
         super(middlewares, options);
     }
 
