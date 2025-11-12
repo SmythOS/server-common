@@ -8,18 +8,29 @@ import AgentLoader from '../../middlewares/AgentLoader.mw';
 
 export class PostmanRole extends BaseRole {
     /**
-     * Creates a new SwaggerRole instance.
-     * @param router - The router to mount the role on.
-     * @param middlewares - The custom middlewares to apply to the role on top of the default middlewares.
-     * @param options - The options for the role.
-     * Accepts:
-     * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
-     * Defaults to '/static/embodiment/swagger'.
+     * Creates a new PostmanRole instance.
+     * @param middlewares - Custom middlewares to apply to the role on top of the default middlewares.
+     * @param options - Configuration options for the role.
+     * @param options.serverOrigin - The server origin URL. Can be a string or a function that accepts the request and returns a string.
+     *                                Used to generate the correct base URL in the OpenAPI spec before conversion.
+     *                                Defaults to an empty string.
      */
     constructor(middlewares: express.RequestHandler[], options: Record<string, string | Function> = { serverOrigin: () => '' }) {
         super(middlewares, options);
     }
 
+    /**
+     * Mounts the Postman collection endpoint on the provided router.
+     *
+     * Creates a GET route that:
+     * 1. Loads agent data via AgentLoader middleware
+     * 2. Fetches the agent's OpenAPI specification
+     * 3. Converts the OpenAPI spec to Postman collection format using openapi-to-postmanv2
+     * 4. Returns the Postman collection as a downloadable JSON file
+     *
+     * @param router - The Express router to mount the endpoint on.
+     * @throws Returns 500 error if OpenAPI spec retrieval or conversion fails.
+     */
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
