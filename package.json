@@ -19,11 +19,6 @@
         ".": {
             "import": "./dist/index.js",
             "types": "./dist/types/index.d.ts"
-        },
-        "./scripts/rollup-external": {
-            "import": "./scripts/rollup-external.js",
-            "require": "./scripts/rollup-external.js",
-            "default": "./scripts/rollup-external.js"
         }
     },
     "scripts": {
