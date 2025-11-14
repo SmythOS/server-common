@@ -3,32 +3,56 @@ import express from 'express';
 import swaggerUi from 'swagger-ui-express';
 import { ConnectorService } from '@smythos/sdk/core';
 import AgentLoader from '../../middlewares/AgentLoader.mw';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 export class SwaggerRole extends BaseRole {
+    private swaggerJsContent: string;
+    private swaggerDebugJsContent: string;
+
     /**
      * Creates a new SwaggerRole instance.
-     * @param router - The router to mount the role on.
      * @param middlewares - The custom middlewares to apply to the role on top of the default middlewares.
      * @param options - The options for the role.
      * Accepts:
-     * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
-     * Defaults to '/static/embodiment/swagger'.
+     * - serverOrigin: The server origin URL (string or function that returns the URL)
      */
-    constructor(
-        middlewares: express.RequestHandler[],
-        options: { staticPath?: string; serverOrigin?: string | Function } = { staticPath: '/static/embodiment/swagger', serverOrigin: () => '' },
-    ) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin?: string | Function } = { serverOrigin: () => '' }) {
         super(middlewares, options);
+
+        // Load the swagger JS files at initialization
+        try {
+            this.swaggerJsContent = fs.readFileSync(path.join(__dirname, 'assets', 'swagger.js'), 'utf-8');
+            this.swaggerDebugJsContent = fs.readFileSync(path.join(__dirname, 'assets', 'swagger-debug.js'), 'utf-8');
+        } catch (error) {
+            console.error('Failed to load swagger JS files:', error);
+            this.swaggerJsContent = '';
+            this.swaggerDebugJsContent = '';
+        }
     }
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
+
+        // Serve swagger.js file
+        router.get('/_swagger-assets/swagger.js', (req, res) => {
+            res.setHeader('Content-Type', 'application/javascript');
+            res.send(this.swaggerJsContent);
+        });
+
+        // Serve swagger-debug.js file
+        router.get('/_swagger-assets/swagger-debug.js', (req, res) => {
+            res.setHeader('Content-Type', 'application/javascript');
+            res.send(this.swaggerDebugJsContent);
+        });
+
         router.use('/', swaggerUi.serve);
         router.use('/', middlewares, async (req: any, res) => {
-            //TODO : handle release switch : dev, prod, prod old versions [DONE]
             const agentData = (req as any)._agentData;
-            // const debugSessionEnabled = agent.debugSessionEnabled;
             const isTestDomain = agentData.usingTestDomain;
-            //const openApiDocument = await getOpenAPIJSON(agentData, domain, req._agentVersion, false);
 
             const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
 
@@ -50,10 +74,11 @@ export class SwaggerRole extends BaseRole {
 
             let htmlContent = swaggerUi.generateHTML(openApiDocument);
 
-            let debugScript = `<script src="${this.options.staticPath}/swagger.js"></script>`;
+            // Inject swagger scripts with self-contained paths
+            let debugScript = `<script src="/_swagger-assets/swagger.js"></script>`;
             if (isTestDomain) {
                 debugScript += `
-<script src="${this.options.staticPath}/swagger-debug.js"></script>
+<script src="/_swagger-assets/swagger-debug.js"></script>
 <script>
 initDebug('${process.env.UI_SERVER}', '${agentData.id}');
 </script>

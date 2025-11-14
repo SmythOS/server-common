@@ -5,6 +5,7 @@ import sourcemaps from 'rollup-plugin-sourcemaps';
 import { typescriptPaths } from 'rollup-plugin-typescript-paths';
 import { colorfulLogs, colors } from './scripts/rollup-colorfulLogs';
 import { execSync } from 'child_process';
+import copy from 'rollup-plugin-copy';
 // Function to automatically mark all non-local imports as external
 // avoids warning message about external dependencies
 const isExternal = (id, ...overArgs) => {
@@ -36,6 +37,14 @@ const config = {
             minify: false,
             treeShaking: false,
             sourcesContent: true,
+        }),
+        copy({
+            targets: [
+                // Copy swagger JS assets to their role directory
+                { src: 'src/roles/swagger/assets/*', dest: 'dist/roles/swagger/assets' },
+                // Copy swagger-ui-dist package files
+                { src: 'node_modules/swagger-ui-dist/*.{js,css,html,map}', dest: 'dist/swagger-ui-dist' },
+            ],
         }),
     ],
 };
