@@ -4,7 +4,6 @@ import { ConnectorService } from '@smythos/sdk/core';
 
 import { BaseRole } from '../Base.role';
 import AgentLoader from '../../middlewares/AgentLoader.mw';
-import EmbodimentAccessCheck from '../../middlewares/EmbodimentAccessCheck.mw';
 
 export class ChatGPTRole extends BaseRole {
     /**
@@ -32,7 +31,7 @@ export class ChatGPTRole extends BaseRole {
      * @param router - Express router to mount the routes on
      */
     public async mount(router: express.Router) {
-        const middlewares = [EmbodimentAccessCheck, AgentLoader, ...this.middlewares];
+        const middlewares = [AgentLoader, ...this.middlewares];
 
         router.get('/api-docs/openapi-gpt.json', middlewares, async (req: any, res) => {
             const agentData = (req as any)._agentData;

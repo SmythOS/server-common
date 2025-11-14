@@ -5,9 +5,7 @@ export { version } from '../package.json';
 
 
 
-export * from './types';
 export * from './middlewares/AgentLoader.mw';
-export * from './middlewares/EmbodimentAccessCheck.mw';
 export * from './roles/Base.role';
 export * from './roles/chatgpt/ChatGPT.role';
 export * from './roles/postman/Postman.role';
