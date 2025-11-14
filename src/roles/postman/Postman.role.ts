@@ -15,7 +15,7 @@ export class PostmanRole extends BaseRole {
      *                                Used to generate the correct base URL in the OpenAPI spec before conversion.
      *                                Defaults to an empty string.
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: Record<string, string | Function> = { serverOrigin: () => '' }) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | Function }) {
         super(middlewares, options);
     }
 
