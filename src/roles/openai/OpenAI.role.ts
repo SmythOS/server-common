@@ -1,17 +1,23 @@
-import express from 'express';
+// Node.js built-in modules
 import { Readable } from 'stream';
 
+// External packages
+import express from 'express';
+
+// Internal imports - parent directories
 import { DEFAULT_AGENT_MODEL_SETTINGS_KEY, DEFAULT_AGENT_MODEL } from '../../constants';
+import AgentLoader from '../../middlewares/AgentLoader.mw';
+import { chatService } from '../../services/chat.service';
+import APIError from '../../APIError.class';
+
+// Internal imports - sibling directories
+import { BaseRole } from '../Base.role';
+
+// Internal imports - current directory
 import { chatValidations } from './chat.validation';
+import AgentDataAdapter from './middlewares/AgentDataAdapter.mw';
 import { validate } from './middlewares/Validate.mw';
 import { extractBearerToken, createOpenAIError } from './utils';
-
-import { chatService } from '../../services/chat.service';
-
-import { BaseRole } from '../Base.role';
-import AgentLoader from '../../middlewares/AgentLoader.mw';
-import AgentDataAdapter from './middlewares/AgentDataAdapter.mw';
-import APIError from '../../APIError.class';
 
 type ModelResolver = string | ((baseModel: string, planInfo: Record<string, any>) => string);
 

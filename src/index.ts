@@ -11,6 +11,7 @@ export * from './middlewares/AgentLoader.mw';
 export * from './roles/Base.role';
 export * from './services/chat.service';
 export * from './utils/agent.utils';
+export * from './roles/chatgpt/ChatGPT.role';
 export * from './roles/openai/chat.validation';
 export * from './roles/openai/OpenAI.role';
 export * from './roles/openai/utils';

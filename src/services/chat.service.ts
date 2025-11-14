@@ -1,12 +1,17 @@
+// Node.js built-in modules
 import crypto from 'crypto';
-import { OpenAI } from 'openai';
 import { Readable } from 'stream';
+
+// External packages
 import { faker } from '@faker-js/faker';
+import { OpenAI } from 'openai';
+import { AccessCandidate, Agent, Conversation, ConnectorService, Logger } from '@smythos/sdk/core';
+
+// Internal imports
 import APIError from '../APIError.class';
 import { getAgentIdAndVersion } from '../utils/agent.utils';
-import { ConnectorService, AccessCandidate, Logger, Conversation, Agent } from '@smythos/sdk/core';
 
-const console = Logger('chat.service.ts');
+const console = Logger('Service: Chat');
 
 interface ChatCompletionParams {
     apiKey: string;
