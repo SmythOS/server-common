@@ -1,4 +1,4 @@
-import { getAgentIdAndVersion } from '../../../utils/agent.utils';
+import { getAgentIdAndVersion } from '@/utils/agent.utils';
 
 export default async function AgentDataAdapter(req, res, next) {
     const agentFromModel: any = req.body.model ? getAgentIdAndVersion(req.body.model) : {};

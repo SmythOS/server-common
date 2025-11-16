@@ -2,8 +2,9 @@ import express from 'express';
 
 import { ConnectorService } from '@smythos/sdk/core';
 
+import AgentLoader from '@/middlewares/AgentLoader.mw';
+
 import { BaseRole } from '../Base.role';
-import AgentLoader from '../../middlewares/AgentLoader.mw';
 
 export class OpenAPIRole extends BaseRole {
     /**
@@ -11,7 +12,7 @@ export class OpenAPIRole extends BaseRole {
      * @param middlewares - The custom middlewares to apply to the role on top of the default middlewares.
      * @param options - The options for the role. Defaults to an empty object.
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: Record<string, string | Function> = {}) {
+    constructor(middlewares: express.RequestHandler[] = [], options: Record<string, string | ((req: express.Request) => string)> = {}) {
         super(middlewares, options);
     }
 
@@ -24,7 +25,7 @@ export class OpenAPIRole extends BaseRole {
 }
 
 async function openapiJSONHandler(req: express.Request, res: express.Response) {
-    let domain = req.hostname;
+    const domain = req.hostname;
     const agentData = (req as any)._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();
@@ -42,7 +43,7 @@ async function openapiJSONHandler(req: express.Request, res: express.Response) {
 }
 
 async function openapiJSON4LLMHandler(req: express.Request, res: express.Response) {
-    let domain = req.hostname;
+    const domain = req.hostname;
     const agentData = (req as any)._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();

@@ -3,8 +3,8 @@ import Converter from 'openapi-to-postmanv2';
 
 import { ConnectorService } from '@smythos/sdk/core';
 
-import { BaseRole } from '../Base.role';
-import AgentLoader from '../../middlewares/AgentLoader.mw';
+import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { BaseRole } from '@/roles/Base.role';
 
 export class PostmanRole extends BaseRole {
     /**
@@ -15,7 +15,7 @@ export class PostmanRole extends BaseRole {
      *                                Used to generate the correct base URL in the OpenAPI spec before conversion.
      *                                Defaults to an empty string.
      */
-    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | Function }) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | ((req: express.Request) => string) }) {
         super(middlewares, options);
     }
 
@@ -35,7 +35,7 @@ export class PostmanRole extends BaseRole {
         const middlewares = [AgentLoader, ...this.middlewares];
 
         router.get('/', middlewares, async (req: any, res) => {
-            let domain = req.hostname;
+            const domain = req.hostname;
             const agentData = (req as any)._agentData;
             try {
                 const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;

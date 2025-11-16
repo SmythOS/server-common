@@ -13,9 +13,11 @@
         "skipLibCheck": true,
         "esModuleInterop": true,
         "typeRoots": ["./node_modules/@types"],
-
         "types": ["node"],
-        "baseUrl": "./src"
+        "baseUrl": "./src",
+        "paths": {
+            "@/*": ["*"]
+        }
     },
     "include": ["src/**/*.ts"],
     "exclude": ["node_modules", "dist"]
