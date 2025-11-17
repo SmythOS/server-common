@@ -1,15 +1,13 @@
-// Node.js built-in modules
 import crypto from 'crypto';
 import { Readable } from 'stream';
 
-// External packages
 import { faker } from '@faker-js/faker';
 import { OpenAI } from 'openai';
-import { AccessCandidate, Agent, Conversation, ConnectorService, Logger } from '@smythos/sdk/core';
 
-// Internal imports
-import APIError from '../APIError.class';
-import { getAgentIdAndVersion } from '../utils/agent.utils';
+import { AccessCandidate, Conversation, ConnectorService, Logger } from '@smythos/sdk/core';
+
+import APIError from '@/APIError.class';
+import { getAgentIdAndVersion } from '@/utils/agent.utils';
 
 const console = Logger('Service: Chat');
 
@@ -68,14 +66,13 @@ class OpenAIChatService {
         const lastUserMessage = history.splice(lastUserMessageIndx, 1)[0];
 
         for (const message of history) {
+            const id = crypto.randomUUID();
             switch (message.role) {
                 case 'user':
-                    const id = crypto.randomUUID();
                     conv.context.addUserMessage(message.content as string, id);
                     break;
                 case 'assistant':
-                    const id2 = crypto.randomUUID();
-                    conv.context.addAssistantMessage(message.content as string, id2);
+                    conv.context.addAssistantMessage(message.content as string, id);
                     break;
             }
         }
@@ -237,10 +234,12 @@ class OpenAIChatService {
         readable: Readable,
         completionId: string,
         now: number,
-        params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
+        params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming
     ) {
         const shouldEmitStatus = this.firstTime || Math.random() < 0.5;
-        this.firstTime && (this.firstTime = false);
+        if (this.firstTime) {
+            this.firstTime = false;
+        }
 
         const randomToolStatus = [
             { text: 'Thinking', pauseDelay: 5_000 },

@@ -1,6 +1,7 @@
 import { NextFunction } from 'express';
 import Joi, { ObjectSchema, Schema } from 'joi';
-import ApiError from '../../../APIError.class';
+
+import ApiError from '@/APIError.class';
 
 type AnyObject = {
     [x: string]: any;
@@ -9,7 +10,6 @@ type AnyObject = {
 const pick = (object: AnyObject, keys: string[]) =>
     keys.reduce((newObject: AnyObject, key) => {
         if (object && Object.prototype.hasOwnProperty.call(object, key)) {
-            // eslint-disable-next-line no-param-reassign
             newObject[key] = object[key];
         }
         return newObject;

@@ -8,7 +8,7 @@ import { execSync } from 'child_process';
 // Function to automatically mark all non-local imports as external
 // avoids warning message about external dependencies
 const isExternal = (id, ...overArgs) => {
-    const _isExternal = !id.startsWith('.') && !path.isAbsolute(id);
+    const _isExternal = !id.startsWith('.') && !path.isAbsolute(id) && !id.startsWith('@/');
     return _isExternal;
 };
 

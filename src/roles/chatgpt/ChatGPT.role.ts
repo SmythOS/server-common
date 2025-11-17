@@ -2,8 +2,8 @@ import express from 'express';
 
 import { ConnectorService } from '@smythos/sdk/core';
 
-import { BaseRole } from '../Base.role';
-import AgentLoader from '../../middlewares/AgentLoader.mw';
+import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { BaseRole } from '@/roles/Base.role';
 
 export class ChatGPTRole extends BaseRole {
     /**
@@ -18,7 +18,7 @@ export class ChatGPTRole extends BaseRole {
      * @param options.serverOrigin - Server origin URL (string or function that returns string from request)
      *                                Used for generating absolute URLs in the OpenAPI spec
      */
-    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | Function }) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | ((req: express.Request) => string) }) {
         super(middlewares, options);
     }
 
@@ -54,9 +54,9 @@ export class ChatGPTRole extends BaseRole {
             // Truncate summaries at sentence boundaries to fit within this limit
             // TODO: Consider using an LLM to intelligently rephrase summaries instead of truncating
             if ('paths' in transformedSpec) {
-                for (let path in transformedSpec.paths) {
+                for (const path in transformedSpec.paths) {
                     const entry = transformedSpec.paths[path];
-                    for (let method in entry) {
+                    for (const method in entry) {
                         if (!entry[method].summary) continue;
                         entry[method].summary = splitOnSeparator(entry[method].summary, 300, '.');
                     }
@@ -224,7 +224,7 @@ function splitOnSeparator(str = '', maxLen: number, separator = ' .') {
     }
 
     // Find the last occurrence of the separator before maxLen to break at a clean boundary
-    let idx = str.lastIndexOf(separator, maxLen);
+    const idx = str.lastIndexOf(separator, maxLen);
 
     // If separator not found, hard truncate at maxLen
     if (idx === -1) {

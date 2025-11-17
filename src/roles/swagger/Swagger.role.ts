@@ -1,8 +1,10 @@
-import { BaseRole } from '../Base.role';
 import express from 'express';
 import swaggerUi from 'swagger-ui-express';
+
 import { ConnectorService } from '@smythos/sdk/core';
-import AgentLoader from '../../middlewares/AgentLoader.mw';
+
+import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { BaseRole } from '@/roles/Base.role';
 
 export class SwaggerRole extends BaseRole {
     /**
@@ -14,7 +16,7 @@ export class SwaggerRole extends BaseRole {
      * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
      * Defaults to '/static/embodiment/swagger'.
      */
-    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | Function; staticPath?: string }) {
+    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | ((req: express.Request) => string); staticPath?: string }) {
         super(middlewares, {
             staticPath: '/static/embodiment/swagger',
             ...options,

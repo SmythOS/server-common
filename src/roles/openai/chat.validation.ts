@@ -14,7 +14,7 @@ export const chatValidations = {
                     Joi.object({
                         role: Joi.string().valid('system', 'user', 'assistant').required(),
                         content: Joi.string().allow(null).required(),
-                    }),
+                    })
                 )
                 .required(),
             model: Joi.string().required(),
