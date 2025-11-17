@@ -25,7 +25,7 @@ export class OpenAPIRole extends BaseRole {
 
 async function openapiJSONHandler(req: express.Request, res: express.Response) {
     let domain = req.hostname;
-    const agentData = (req as any)._agentData;
+    const agentData = req._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();
     const openAPIObj = await agentDataConnector.getOpenAPIJSON(agentData, domain, req._agentVersion, false).catch((error) => {
@@ -43,7 +43,7 @@ async function openapiJSONHandler(req: express.Request, res: express.Response) {
 
 async function openapiJSON4LLMHandler(req: express.Request, res: express.Response) {
     let domain = req.hostname;
-    const agentData = (req as any)._agentData;
+    const agentData = req._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();
     const openAPIObj = await agentDataConnector.getOpenAPIJSON(agentData, domain, req._agentVersion, true).catch((error) => {
