@@ -33,11 +33,11 @@ export class ChatGPTRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.get('/api-docs/openapi-gpt.json', middlewares, async (req: any, res) => {
-            const agentData = (req as any)._agentData;
+        router.get('/api-docs/openapi-gpt.json', middlewares, async (req: express.Request, res: express.Response) => {
+            const agentData = req._agentData;
 
             // Resolve server origin from options (static value or dynamic function)
-            const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
+            const serverOrigin = this.resolve(this.options.serverOrigin, { args: req });
 
             // Fetch the base OpenAPI 3.0.1 specification from agent data
             const agentDataConnector = ConnectorService.getAgentDataConnector();

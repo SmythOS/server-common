@@ -3,17 +3,16 @@ import { Readable } from 'stream';
 import express from 'express';
 
 import APIError from '@/APIError.class';
-import { DEFAULT_AGENT_MODEL_SETTINGS_KEY, DEFAULT_AGENT_MODEL } from '@/constants';
+import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_SETTINGS_KEY } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
 import { BaseRole } from '@/roles/Base.role';
-import { chatService } from '@/services/chat.service';
+import { chatService } from '@/roles/openai/Chat.service';
+import type { ModelResolver } from '@/types/resolvers.types';
 
 import { chatValidations } from './chat.validation';
 import AgentDataAdapter from './middlewares/AgentDataAdapter.mw';
 import { validate } from './middlewares/Validate.mw';
-import { extractBearerToken, createOpenAIError } from './utils';
-
-type ModelResolver = string | ((baseModel: string, planInfo: Record<string, any>) => string);
+import { createOpenAIError, extractBearerToken } from './utils';
 
 export class OpenAIRole extends BaseRole {
     /**
@@ -44,18 +43,11 @@ export class OpenAIRole extends BaseRole {
                     // Get base model from agent settings or use system default
                     const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
-                    // Apply model resolution strategy
-                    let model: string;
-                    if (typeof this.options?.model === 'function') {
-                        // Dynamic: resolve model using custom function with base model and plan info
-                        model = this.options.model(baseModel, agentData?.planInfo || {});
-                    } else if (this.options?.model) {
-                        // Static: use the specified model override
-                        model = this.options.model;
-                    } else {
-                        // Default: use base model from agent settings
-                        model = baseModel;
-                    }
+                    // Apply model resolution strategy: static string, dynamic function, or default to base model
+                    const model = this.resolve(this.options?.model, {
+                        args: { baseModel, planInfo: agentData?.planInfo || {} },
+                        defaultValue: baseModel,
+                    });
 
                     const authHeader = req.headers['authorization'];
                     const apiKey = extractBearerToken(authHeader);
