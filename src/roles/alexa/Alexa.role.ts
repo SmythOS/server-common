@@ -32,7 +32,7 @@ export class OpenAPIRole extends BaseRole {
                 await agentSettings?.embodiments?.ready();
 
                 // Resolve server origin: static string or dynamic from request
-                const serverOrigin = this.resolve(this.options.serverOrigin, { args: req });
+                const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
                 const alexRequest = parseAlexaRequest(req.body);
 
@@ -40,10 +40,11 @@ export class OpenAPIRole extends BaseRole {
                 const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
                 // Apply model resolution strategy: static string, dynamic function, or default to base model
-                const model = this.resolve(this.options?.model, {
-                    args: { baseModel, planInfo: agentData?.planInfo || {} },
-                    defaultValue: baseModel,
-                });
+                const model = this.resolve(
+                    this.options?.model,
+                    { baseModel, planInfo: agentData?.planInfo || {} },
+                    baseModel,
+                );
 
                 const response = await handleAlexaRequest({
                     isEnabled,

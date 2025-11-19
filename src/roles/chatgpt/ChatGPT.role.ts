@@ -37,7 +37,7 @@ export class ChatGPTRole extends BaseRole {
             const agentData = req._agentData;
 
             // Resolve server origin from options (static value or dynamic function)
-            const serverOrigin = this.resolve(this.options.serverOrigin, { args: req });
+            const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
             // Fetch the base OpenAPI 3.0.1 specification from agent data
             const agentDataConnector = ConnectorService.getAgentDataConnector();

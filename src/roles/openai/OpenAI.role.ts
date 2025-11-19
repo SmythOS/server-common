@@ -44,10 +44,11 @@ export class OpenAIRole extends BaseRole {
                     const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
                     // Apply model resolution strategy: static string, dynamic function, or default to base model
-                    const model = this.resolve(this.options?.model, {
-                        args: { baseModel, planInfo: agentData?.planInfo || {} },
-                        defaultValue: baseModel,
-                    });
+                    const model = this.resolve(
+                        this.options?.model,
+                        { baseModel, planInfo: agentData?.planInfo || {} },
+                        baseModel,
+                    );
 
                     const authHeader = req.headers['authorization'];
                     const apiKey = extractBearerToken(authHeader);

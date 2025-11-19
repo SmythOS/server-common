@@ -35,7 +35,7 @@ export class SwaggerRole extends BaseRole {
             const isTestDomain = agentData.usingTestDomain;
             //const openApiDocument = await getOpenAPIJSON(agentData, domain, req._agentVersion, false);
 
-            const serverOrigin = this.resolve(this.options.serverOrigin, { args: req });
+            const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
             const agentDataConnector = ConnectorService.getAgentDataConnector();
             const openApiDocument = await agentDataConnector.getOpenAPIJSON(agentData, serverOrigin, agentData.version, false);

@@ -31,31 +31,32 @@ export class BaseRole {
      * @template Args - The argument object type for the resolver function
      *
      * @param resolvable - Either a static value of type T or a function that returns T
-     * @param options - Configuration object
-     * @param options.args - Argument object to pass to the resolver function (if resolvable is a function)
-     * @param options.defaultValue - Optional default value to use if resolvable is undefined or returns undefined
+     * @param args - Optional argument object to pass to the resolver function (required only if resolvable is a function)
+     * @param defaultValue - Optional default value to use if resolvable is undefined or returns undefined
      * @returns The resolved value of type T, or defaultValue, or undefined
      *
      * @example
-     * -- Resolve server origin without default (returns string | undefined)
-     * const origin = this.resolve(this.options.serverOrigin, { args: { req } });
+     * -- Resolve static value with default
+     * const timeout = this.resolve(this.options.timeout, undefined, 5000);
+     *
+     * @example
+     * -- Resolve dynamic value without default (returns string | undefined)
+     * const origin = this.resolve(this.options.serverOrigin, req);
      *
      * @example
      * -- Resolve model with default fallback (always returns string)
-     * const model = this.resolve(this.options.model, {
-     *     args: { baseModel, planInfo: agentData?.planInfo || {} },
-     *     defaultValue: baseModel
-     * });
+     * const model = this.resolve(
+     *     this.options.model,
+     *     { baseModel, planInfo: agentData?.planInfo || {} },
+     *     baseModel
+     * );
      */
-    protected resolve<T, Args = void>(
-        resolvable: Resolvable<T, Args> | undefined,
-        options: { args: Args; defaultValue?: T },
-    ): T | undefined {
+    protected resolve<T, Args = void>(resolvable: Resolvable<T, Args> | undefined, args?: Args, defaultValue?: T): T | undefined {
         if (resolvable === undefined) {
-            return options.defaultValue;
+            return defaultValue;
         }
-        const resolved = typeof resolvable === 'function' ? (resolvable as (args: Args) => T)(options.args) : resolvable;
-        return resolved !== undefined ? resolved : options.defaultValue;
+        const resolved = typeof resolvable === 'function' ? (resolvable as (args: Args) => T)(args!) : resolvable;
+        return resolved !== undefined ? resolved : defaultValue;
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

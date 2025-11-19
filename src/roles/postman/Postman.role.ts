@@ -43,7 +43,7 @@ export class PostmanRole extends BaseRole {
         router.get('/', middlewares, async (req: express.Request, res: express.Response) => {
             const agentData = req._agentData;
             try {
-                const serverOrigin = this.resolve(this.options.serverOrigin, { args: req });
+                const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
                 const agentDataConnector = ConnectorService.getAgentDataConnector();
                 const openAPISpec = await agentDataConnector
