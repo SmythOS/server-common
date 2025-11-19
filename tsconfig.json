@@ -19,6 +19,6 @@
             "@/*": ["*"]
         }
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "src/middlewares/.mw.ts"],
     "exclude": ["node_modules", "dist"]
 }
