@@ -3,8 +3,7 @@ import express from 'express';
 import { ConnectorService } from '@smythos/sdk/core';
 
 import AgentLoader from '@/middlewares/AgentLoader.mw';
-
-import { BaseRole } from '../Base.role';
+import { BaseRole } from '@/roles/Base.role';
 
 export class OpenAPIRole extends BaseRole {
     /**
@@ -25,7 +24,7 @@ export class OpenAPIRole extends BaseRole {
 }
 
 async function openapiJSONHandler(req: express.Request, res: express.Response) {
-    let domain = req.hostname;
+    const domain = req.hostname;
     const agentData = req._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();
@@ -43,7 +42,7 @@ async function openapiJSONHandler(req: express.Request, res: express.Response) {
 }
 
 async function openapiJSON4LLMHandler(req: express.Request, res: express.Response) {
-    let domain = req.hostname;
+    const domain = req.hostname;
     const agentData = req._agentData;
 
     const agentDataConnector = ConnectorService.getAgentDataConnector();

@@ -26,11 +26,12 @@
         "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types --rootDir src -p tsconfig.json",
         "build:rollup": "rollup -c ./rollup.config.js",
         "build": "pnpm run clean && pnpm run build:rollup && pnpm run build:types && npm link",
-        "lint": "eslint src/**/*.ts",
-        "lint:fix": "eslint src/**/*.ts --fix"
+        "lint": "pnpm exec eslint \"src/**/*.ts\"",
+        "lint:fix": "pnpm exec eslint \"src/**/*.ts\" --fix"
     },
     "devDependencies": {
         "@eslint/js": "^9.39.1",
+        "@ianvs/prettier-plugin-sort-imports": "^4.7.0",
         "@rollup/plugin-json": "^6.1.0",
         "@types/express": "^4.17.21",
         "@types/node": "^22.9.0",
@@ -40,6 +41,7 @@
         "eslint-config-prettier": "^10.1.8",
         "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-import": "^2.32.0",
+        "prettier": "^3.6.2",
         "rimraf": "^6.0.1",
         "rollup": "^2.79.2",
         "rollup-plugin-esbuild": "^6.2.1",

@@ -2,9 +2,6 @@
 
 export { version } from '../package.json';
 
-
-
-
 export * from './APIError.class';
 export * from './constants';
 export * from './middlewares/AgentLoader.mw';
@@ -12,7 +9,7 @@ export * from './middlewares/CORS.mw';
 export * from './middlewares/RemoveHeadersFactory.mw';
 export * from './middlewares/UploadHandlerFactory.mw';
 export * from './roles/Base.role';
-export * from './services/chat.service';
+export * from './roles/openai/Chat.service';
 export * from './utils/agent.utils';
 export * from './roles/agent/Agent.role';
 export * from './roles/agent/AgentRequestHandler';
