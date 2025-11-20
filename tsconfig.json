@@ -13,10 +13,12 @@
         "skipLibCheck": true,
         "esModuleInterop": true,
         "typeRoots": ["./node_modules/@types"],
-
         "types": ["node"],
-        "baseUrl": "./src"
+        "baseUrl": "./src",
+        "paths": {
+            "@/*": ["*"]
+        }
     },
-    "include": ["src/**/*.ts"],
+    "include": ["src/**/*.ts", "src/middlewares/.mw.ts"],
     "exclude": ["node_modules", "dist"]
 }

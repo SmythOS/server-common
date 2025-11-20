@@ -7,17 +7,17 @@ export default async function AgentLoader(req, res, next) {
     const agentDataConnector = ConnectorService.getAgentDataConnector();
 
     let agentId = req.header('X-AGENT-ID');
-    let agentVersion = req.header('X-AGENT-VERSION') || '';
+    const agentVersion = req.header('X-AGENT-VERSION') || '';
     const debugHeader =
         req.header('X-DEBUG-STOP') !== undefined ||
         req.header('X-DEBUG-RUN') !== undefined ||
         req.header('X-DEBUG-INJ') !== undefined ||
         req.header('X-DEBUG-READ') !== undefined;
 
-    let agentDomain: any = '';
+    let agentDomain: string = '';
     let isTestDomain = false;
-    let { path, version } = extractAgentVerionsAndPath(req.path);
-    if (!version) version = agentVersion;
+    const { path, version: extractedVersion } = extractAgentVerionsAndPath(req.path);
+    let version = extractedVersion ?? agentVersion;
 
     const domain = req.hostname;
     const method = req.method;
