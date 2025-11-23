@@ -57,7 +57,7 @@ export class AlexaRole extends BaseRole {
             }
         });
 
-        router.post('/publish', async (req: express.Request, res: express.Response) => {
+        router.post('/publish', middlewares, async (req: express.Request, res: express.Response) => {
             try {
                 const agentData = req._agentData;
                 const agentName = agentData.name;
