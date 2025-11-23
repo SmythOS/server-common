@@ -7,9 +7,9 @@ import type { ModelResolver, ServerOriginResolver } from '@/types/resolvers.type
 
 import { createAlexaSkill, handleAlexaRequest, isAlexaEnabled, parseAlexaRequest } from './Alexa.service';
 
-export class OpenAPIRole extends BaseRole {
+export class AlexaRole extends BaseRole {
     /**
-     * Creates a new OpenAPIRole instance.
+     * Creates a new AlexaRole instance.
      * @param middlewares - The custom middlewares to apply to the role on top of the default middlewares.
      * @param options - The options for the role
      * @param options.serverOrigin - Server origin URL: string for static, or function to resolve dynamically from request
@@ -40,11 +40,7 @@ export class OpenAPIRole extends BaseRole {
                 const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
                 // Apply model resolution strategy: static string, dynamic function, or default to base model
-                const model = this.resolve(
-                    this.options?.model,
-                    { baseModel, planInfo: agentData?.planInfo || {} },
-                    baseModel,
-                );
+                const model = this.resolve(this.options?.model, { baseModel, planInfo: agentData?.planInfo || {} }, baseModel);
 
                 const response = await handleAlexaRequest({
                     isEnabled,

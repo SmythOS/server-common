@@ -11,7 +11,7 @@ export class OpenAPIRole extends BaseRole {
      * @param middlewares - The custom middlewares to apply to the role on top of the default middlewares.
      * @param options - The options for the role. Defaults to an empty object.
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: Record<string, string | ((req: express.Request) => string)> = {}) {
+    constructor(middlewares: express.RequestHandler[] = [], options: Record<string, unknown> = {}) {
         super(middlewares, options);
     }
 
