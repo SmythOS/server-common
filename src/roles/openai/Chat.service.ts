@@ -4,7 +4,7 @@ import { Readable } from 'stream';
 import { faker } from '@faker-js/faker';
 import { OpenAI } from 'openai';
 
-import { AccessCandidate, Conversation, ConnectorService, Logger } from '@smythos/sdk/core';
+import { AccessCandidate, ConnectorService, Conversation, Logger } from '@smythos/sdk/core';
 
 import APIError from '@/APIError.class';
 import { getAgentIdAndVersion } from '@/utils/agent.utils';
@@ -224,7 +224,9 @@ class OpenAIChatService {
                 object: 'chat.completion',
                 created: now,
                 model: params.model,
-                choices: [{ index: 0, message: { role: 'assistant', content: result, refusal: null }, logprobs: null, finish_reason: 'stop' }],
+                choices: [
+                    { index: 0, message: { role: 'assistant', content: result, refusal: null }, logprobs: null, finish_reason: 'stop' },
+                ],
             };
         }
     }
@@ -234,7 +236,7 @@ class OpenAIChatService {
         readable: Readable,
         completionId: string,
         now: number,
-        params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming
+        params: OpenAI.Chat.Completions.ChatCompletionCreateParamsNonStreaming,
     ) {
         const shouldEmitStatus = this.firstTime || Math.random() < 0.5;
         if (this.firstTime) {
