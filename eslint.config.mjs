@@ -16,36 +16,8 @@ export default tseslint.config(
             import: importPlugin,
         },
         rules: {
-            'import/order': [
-                'error',
-                {
-                    groups: [
-                        'builtin',
-                        'external',
-                        'internal',
-                        ['parent', 'sibling'],
-                        'index',
-                    ],
-                    'newlines-between': 'always',
-                    pathGroups: [
-                        {
-                            pattern: '@smythos/**',
-                            group: 'internal',
-                            position: 'before',
-                        },
-                        {
-                            pattern: '@/**',
-                            group: 'internal',
-                            position: 'after',
-                        },
-                    ],
-                    pathGroupsExcludedImportTypes: ['builtin'],
-                    alphabetize: {
-                        order: 'asc',
-                        caseInsensitive: true,
-                    },
-                },
-            ],
+            // Import ordering is handled by Prettier plugin
+            'import/order': 'off',
             'import/no-unresolved': 'off',
             '@typescript-eslint/no-unused-vars': 'warn',
             '@typescript-eslint/no-explicit-any': 'warn',
