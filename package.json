@@ -25,7 +25,7 @@
         "clean": "rimraf dist",
         "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types --rootDir src -p tsconfig.json",
         "build:rollup": "rollup -c ./rollup.config.js",
-        "build": "pnpm run clean && pnpm run build:rollup && pnpm run build:types && npm link",
+        "build": "npm run clean && npm run build:rollup && npm run build:types && npm link",
         "lint": "eslint src/**/*.ts",
         "lint:fix": "eslint src/**/*.ts --fix"
     },
