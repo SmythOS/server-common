@@ -25,7 +25,7 @@
         "clean": "rimraf dist",
         "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types --rootDir src -p tsconfig.json",
         "build:rollup": "rollup -c ./rollup.config.js",
-        "build": "pnpm run clean && pnpm run build:rollup && pnpm run build:types && npm link",
+        "build": "npm run clean && npm run build:rollup && npm run build:types && npm link",
         "lint": "eslint src/**/*.ts",
         "lint:fix": "eslint src/**/*.ts --fix"
     },
@@ -56,7 +56,7 @@
         "joi": "^17.13.3",
         "multer": "^2.0.2",
         "openai": "^4.72.0",
-        "openapi-to-postmanv2": "^5.3.5",
+        "openapi-to-postmanv2": "^4.18.0",
         "swagger-ui-express": "^5.0.1"
     }
 }
