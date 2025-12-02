@@ -16,7 +16,10 @@ export class SwaggerRole extends BaseRole {
      * - staticPath: The path to the static files for the role. this assumes that a static route is mounted and the swagger files (swagger.js, swagger-debug.js) are served from this path.
      * Defaults to '/static/embodiment/swagger'.
      */
-    constructor(middlewares: express.RequestHandler[], options: { serverOrigin: string | ((req: express.Request) => string); staticPath?: string }) {
+    constructor(
+        middlewares: express.RequestHandler[],
+        options: { serverOrigin: string | ((req: express.Request) => string); staticPath?: string },
+    ) {
         super(middlewares, {
             staticPath: '/static/embodiment/swagger',
             ...options,
@@ -32,7 +35,7 @@ export class SwaggerRole extends BaseRole {
             const isTestDomain = agentData.usingTestDomain;
             //const openApiDocument = await getOpenAPIJSON(agentData, domain, req._agentVersion, false);
 
-            const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
+            const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
             const agentDataConnector = ConnectorService.getAgentDataConnector();
             const openApiDocument = await agentDataConnector.getOpenAPIJSON(agentData, serverOrigin, agentData.version, false);

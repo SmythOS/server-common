@@ -6,6 +6,12 @@ import { ConnectorService } from '@smythos/sdk/core';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
 import { BaseRole } from '@/roles/Base.role';
 
+interface PostmanConversionResult {
+    result: boolean;
+    reason?: string;
+    output?: Array<{ data: unknown }>;
+}
+
 export class PostmanRole extends BaseRole {
     /**
      * Creates a new PostmanRole instance.
@@ -34,23 +40,24 @@ export class PostmanRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.get('/', middlewares, async (req: any, res) => {
-            const domain = req.hostname;
-            const agentData = (req as any)._agentData;
+        router.get('/', middlewares, async (req: express.Request, res: express.Response) => {
+            const agentData = req._agentData;
             try {
-                const serverOrigin = typeof this.options.serverOrigin === 'function' ? this.options.serverOrigin(req) : this.options.serverOrigin;
+                const serverOrigin = this.resolve(this.options.serverOrigin, req);
 
                 const agentDataConnector = ConnectorService.getAgentDataConnector();
-                const openAPISpec = await agentDataConnector.getOpenAPIJSON(agentData, serverOrigin, agentData.version, false).catch((error) => {
-                    console.error(error);
-                    return { error: error.message };
-                });
+                const openAPISpec = await agentDataConnector
+                    .getOpenAPIJSON(agentData, serverOrigin, agentData.version, false)
+                    .catch((error) => {
+                        console.error(error);
+                        return { error: error.message };
+                    });
 
                 if (openAPISpec?.error) {
                     return res.status(500).send({ error: openAPISpec.error });
                 }
 
-                const conversionResult: any = await new Promise((resolve, reject) => {
+                const conversionResult: PostmanConversionResult = await new Promise((resolve, reject) => {
                     Converter.convert({ type: 'json', data: openAPISpec }, {}, (err, result) => {
                         if (err) {
                             reject(err);
@@ -67,9 +74,9 @@ export class PostmanRole extends BaseRole {
                 res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
                 res.setHeader('Content-Type', 'application/json');
                 res.send(JSON.stringify(conversionResult?.output?.[0]?.data, null, 2));
-            } catch (error: any) {
+            } catch (error: unknown) {
                 console.error(error);
-                return res.status(500).send({ error: error.message });
+                return res.status(500).send({ error: (error as Error).message });
             }
         });
     }
