@@ -36,12 +36,6 @@ export class MCPRole extends BaseRole {
             try {
                 const agentData = req._agentData;
 
-                // #region // TODO: we remove this if authentication enabled for MCP
-                if (agentData?.auth?.method && agentData?.auth?.method !== 'none') {
-                    return res.status(400).send({ error: 'Agents with authentication enabled are not supported for MCP' });
-                }
-                // #endregion
-
                 const agentDataConnector = ConnectorService.getAgentDataConnector();
                 const openAPISpec = await agentDataConnector.getOpenAPIJSON(agentData, 'localhost', 'latest', true);
 
