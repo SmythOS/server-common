@@ -49,7 +49,7 @@ function ctixPlugin(options = {}) {
         buildStart() {
             try {
                 process.stdout.write(`\n${colors.cyan}⚙️ ${colors.yellow} Generating barrel files...${colors.reset}\n`);
-                execSync('pnpm exec ctix build', { stdio: 'inherit' });
+                execSync('npm exec ctix build', { stdio: 'inherit' });
                 console.log(`${colors.green}✅ ${colors.bright}Barrel files generated successfully!${colors.reset}\n`);
             } catch (error) {
                 this.error(`Failed to generate ctix barrel files: ${error.message}`);

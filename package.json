@@ -60,7 +60,7 @@
         "joi": "^17.13.3",
         "multer": "^2.0.2",
         "openai": "^4.72.0",
-        "openapi-to-postmanv2": "^5.3.5",
+        "openapi-to-postmanv2": "^4.18.0",
         "swagger-ui-express": "^5.0.1"
     }
 }
