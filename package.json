@@ -21,11 +21,21 @@
             "types": "./dist/types/index.d.ts"
         }
     },
+    "files": [
+        "dist",
+        "README.md",
+        "LICENSE"
+    ],
     "scripts": {
         "clean": "rimraf dist",
         "build:types": "tsc --emitDeclarationOnly --declaration --outDir dist/types --rootDir src -p tsconfig.json",
         "build:rollup": "rollup -c ./rollup.config.js",
-        "build": "npm run clean && npm run build:rollup && npm run build:types && npm link",
+        "build": "npm run clean && npm run build:rollup && npm run build:types",
+        "build:link": "npm run build && npm link",
+        "prepublishOnly": "npm run build",
+        "release:patch": "npm version patch && git push && git push --tags",
+        "release:minor": "npm version minor && git push && git push --tags",
+        "release:major": "npm version major && git push && git push --tags",
         "lint": "npm exec eslint \"src/**/*.ts\"",
         "lint:fix": "npm exec eslint \"src/**/*.ts\" --fix"
     },
