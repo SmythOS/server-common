@@ -33,7 +33,6 @@
         "build": "npm run clean && npm run build:rollup && npm run build:types",
         "build:link": "npm link @smythos/sdk",
         "build:local": "npm run build:link && npm run build && npm link",
-        "prepublishOnly": "npm run build",
         "release:patch": "npm version patch && git push && git push --tags",
         "release:minor": "npm version minor && git push && git push --tags",
         "release:major": "npm version major && git push && git push --tags",
