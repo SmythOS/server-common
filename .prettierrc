@@ -1,6 +1,24 @@
 {
-    "tabWidth": 4,
-    "useTabs": false,
-    "singleQuote": true,
-    "printWidth": 150
+  "semi": true,
+  "trailingComma": "all",
+  "singleQuote": true,
+  "printWidth": 140,
+  "tabWidth": 4,
+  "plugins": ["@ianvs/prettier-plugin-sort-imports"],
+  "importOrder": [
+    "^node:(.*)$",
+    "<BUILTIN_MODULES>",
+    "",
+    "^[^@./].*$",
+    "",
+    "^@(?!smythos/)[^/]+/.*$",
+    "",
+    "^@smythos/(.*)$",
+    "",
+    "^@/(.*)$",
+    "",
+    "^[./]"
+  ],
+  "importOrderParserPlugins": ["typescript", "decorators-legacy"],
+  "importOrderTypeScriptVersion": "5.0.0"
 }
