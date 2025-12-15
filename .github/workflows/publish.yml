@@ -221,7 +221,7 @@ jobs:
                       ```json
                       {
                         "dependencies": {
-                          "server-common": "github:${{ github.repository }}#release"
+                          "@smythos/server-common": "github:${{ github.repository }}#release"
                         }
                       }
                       ```
@@ -232,7 +232,7 @@ jobs:
                       ```json
                       {
                         "dependencies": {
-                          "server-common": "github:${{ github.repository }}#v${{ needs.validate.outputs.version }}"
+                          "@smythos/server-common": "github:${{ github.repository }}#v${{ needs.validate.outputs.version }}"
                         }
                       }
                       ```
