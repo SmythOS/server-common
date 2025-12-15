@@ -1,6 +1,6 @@
 {
     "name": "@smythos/server-common",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "description": "Reusable server components (middlewares, routers, utilities) for SmythOS distributions",
     "homepage": "https://github.com/SmythOS/server-common#readme",
     "bugs": {
