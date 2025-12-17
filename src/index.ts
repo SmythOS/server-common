@@ -7,11 +7,18 @@ export { version } from '../package.json';
 
 export * from './APIError.class';
 export * from './constants';
+export * from './helpers/agent.helper';
+export * from './helpers/auth.helper';
+export * from './middlewares/AgentAuthLoader.mw';
+export * from './middlewares/AgentAuthRouter.mw';
 export * from './middlewares/AgentLoader.mw';
+export * from './middlewares/BearerTokenValidator.mw';
 export * from './middlewares/CORS.mw';
+export * from './middlewares/OIDCTokenValidator.mw';
 export * from './middlewares/RemoveHeadersFactory.mw';
 export * from './middlewares/UploadHandlerFactory.mw';
 export * from './roles/Base.role';
+export * from './types/auth.types';
 export * from './types/resolvers.types';
 export * from './utils/agent.utils';
 export * from './roles/agent/Agent.role';

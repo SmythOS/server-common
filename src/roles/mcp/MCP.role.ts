@@ -6,7 +6,11 @@ import { CallToolRequestSchema, ListToolsRequestSchema, Tool } from '@modelconte
 
 import { AgentProcess, ConnectorService, Logger } from '@smythos/sdk/core';
 
+import AgentAuthLoader from '@/middlewares/AgentAuthLoader.mw';
+import AgentAuthRouter from '@/middlewares/AgentAuthRouter.mw';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
+import BearerTokenValidatorMW from '@/middlewares/BearerTokenValidator.mw';
+import OIDCTokenValidatorMW from '@/middlewares/OIDCTokenValidator.mw';
 import { BaseRole } from '@/roles/Base.role';
 
 import { extractMCPToolSchema, formatMCPSchemaProperties } from './MCP.service';
@@ -19,6 +23,11 @@ const console = Logger('Role: MCP');
 
 const clientTransports = new Map<string, { transport: SSEServerTransport; server: McpServer }>();
 
+const tokenValidatorsMW = {
+    'oauth-oidc': OIDCTokenValidatorMW,
+    'api-key-bearer': BearerTokenValidatorMW,
+};
+
 export class MCPRole extends BaseRole {
     /**
      * Creates a new MCPRole instance.
@@ -30,7 +39,12 @@ export class MCPRole extends BaseRole {
     }
 
     public async mount(router: express.Router) {
-        const middlewares = [AgentLoader, ...this.middlewares];
+        const middlewares = [
+            AgentLoader,
+            AgentAuthLoader,
+            AgentAuthRouter(tokenValidatorsMW, { checkHeaderForAuthToken: true }),
+            ...this.middlewares,
+        ];
 
         router.get('/sse', middlewares, async (req: express.Request, res: express.Response) => {
             try {

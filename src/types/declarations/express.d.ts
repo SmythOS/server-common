@@ -7,6 +7,7 @@ declare global {
             _agentVersion?: string;
             _agentSettings?: AgentSettings;
             _plan?: any;
+            session?: any;
         }
     }
 }
