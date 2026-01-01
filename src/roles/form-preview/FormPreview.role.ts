@@ -9,27 +9,51 @@ export class FormPreviewRole extends BaseRole {
      * Creates a new FormPreviewRole instance.
      * @param middlewares - Custom middlewares to apply to the role on top of the default middlewares.
      * @param options - Configuration options for the role.
-     * @param options.staticPath - The path to the form preview static files. Defaults to '/static/embodiment/formPreview'.
-     * @param options.scriptPath - The path to the form preview script. Defaults to staticPath + '/form-preview-minified.js'.
+     * @param options.port - The port for the runtime server. Can be a static string or a function that resolves the port from the request.
+     * @param options.runtimeUrl - The base URL for the runtime server. Can be a static string or a function that resolves the URL from the request.
+     * @param options.authToken - Optional authentication token for API calls. Can be a static string or a function that resolves the token from the request and agent ID.
+     * @param options.beforeMount - Optional callback executed before mounting routes, useful for adding custom middleware or routes.
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: { port: number } = { port: 3000 }) {
+    constructor(
+        middlewares: express.RequestHandler[] = [],
+        options: {
+            port: string | ((req: express.Request) => string | undefined);
+            runtimeUrl: string | ((req: express.Request) => string);
+            authToken?: string | ((req: express.Request, agentId: string) => string);
+            beforeMount?: (router: express.Router) => Promise<void>;
+        },
+    ) {
         super(middlewares, options);
     }
 
     /**
-     * Mounts the form preview endpoint on the provided router.
+     * Mounts the form preview endpoints on the provided router.
      *
-     * Creates a GET route that:
-     * 1. Loads agent data via AgentLoader middleware
-     * 2. Serves an HTML page with an embedded form preview interface
-     * 3. Initializes the FormPreview client-side component with agent configuration
+     * Creates three routes:
+     * 1. GET / - Serves an HTML page with the embedded form preview interface
+     * 2. GET /params - Returns agent configuration data (id, name, components, domain, port, outputPreview)
+     * 3. POST /call-skill - Executes a skill by calling the runtime server with the provided componentId and payload
      *
-     * @param router - The Express router to mount the endpoint on.
+     * All routes use AgentLoader middleware to load agent data and settings.
+     *
+     * @param router - The Express router to mount the endpoints on.
      */
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.get('/', middlewares, async (req, res) => {
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
+
+        router.get('/', async (req, res) => {
             const agentData = req._agentData;
             // Set Permissions-Policy header to allow storage access in iframe
             res.setHeader('Permissions-Policy', 'storage-access=*');
@@ -56,7 +80,7 @@ export class FormPreviewRole extends BaseRole {
 </html>`);
         });
 
-        router.get('/params', middlewares, async (req, res) => {
+        router.get('/params', async (req, res) => {
             const agentData = req._agentData;
             const agentSettings = req._agentSettings;
 
@@ -67,19 +91,21 @@ export class FormPreviewRole extends BaseRole {
             const agentId = agentData.id;
             const outputPreview = agentSettings?.embodiments?.get('form')?.outputPreview || false;
 
+            const port = this.resolve(this.options.port, req);
+
             const agentDataResponse = {
                 id: agentId,
                 name: agentData.name,
                 components: agentData.components,
                 domain: agentData.domain,
-                port: this.options.port,
+                port,
                 outputPreview,
             };
 
             res.send(agentDataResponse);
         });
 
-        router.post('/call-skill', middlewares, async (req, res) => {
+        router.post('/call-skill', async (req, res) => {
             const agentData = req._agentData;
 
             const agentId = agentData.id;
@@ -91,9 +117,10 @@ export class FormPreviewRole extends BaseRole {
                 res.status(404).send({ error: 'Component not found' });
             }
 
-            const authToken = this.options.authToken;
+            const authToken = this.resolve(this.options.authToken, req, agentId);
+            const runtimeUrl = this.resolve(this.options.runtimeUrl, req);
 
-            let url = `${this.options.runtimeUrl}/api/${component.data.endpoint!}`;
+            let url = `${runtimeUrl}/api/${component.data.endpoint!}`;
 
             if (authToken) {
                 url += `?token=${authToken}`;
@@ -124,28 +151,5 @@ export class FormPreviewRole extends BaseRole {
                 return res.status(error.response?.status || 500).json({ error: axiosErr.response?.data || axiosErr.message });
             }
         });
-    }
-}
-
-// TODO: Remove if it's not mandatory to have response even callSkill fails
-type CallSkillParams = {
-    url: string;
-    body: string;
-    headers: { [key: string]: string };
-};
-
-export async function callSkill({ url, body, headers }: CallSkillParams) {
-    try {
-        const res = await axios.post(url, body, {
-            headers: {
-                'Content-Type': 'application/json',
-                'X-DEBUG-SKIP': 'true',
-                ...headers,
-            },
-        });
-        return res.data;
-    } catch (error) {
-        const axiosErr = error as AxiosError;
-        return axiosErr.response?.data || axiosErr.message;
     }
 }
