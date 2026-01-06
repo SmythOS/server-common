@@ -19,6 +19,7 @@ export * from './roles/agent/AgentRequestHandler';
 export * from './roles/alexa/Alexa.role';
 export * from './roles/alexa/Alexa.service';
 export * from './roles/chatgpt/ChatGPT.role';
+export * from './roles/form-preview/FormPreview.role';
 export * from './roles/mcp/MCP.role';
 export * from './roles/mcp/MCP.service';
 export * from './roles/openai/Chat.service';
