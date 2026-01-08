@@ -7,6 +7,7 @@ import { CallToolRequestSchema, ListToolsRequestSchema, Tool } from '@modelconte
 import { AgentProcess, ConnectorService, Logger } from '@smythos/sdk/core';
 
 import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 
 import { extractMCPToolSchema, formatMCPSchemaProperties } from './MCP.service';
@@ -32,7 +33,7 @@ export class MCPRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.get('/sse', middlewares, async (req: express.Request, res: express.Response) => {
+        router.get('/sse', [...middlewares, SetAccessAuthTokenMW], async (req: express.Request, res: express.Response) => {
             try {
                 const agentData = req._agentData;
 
@@ -131,6 +132,9 @@ export class MCPRole extends BaseRole {
                                 method: method,
                                 path: path,
                                 body: args,
+                                headers: {
+                                    'X-AUTH-TOKEN': req.headers['x-auth-token'],
+                                },
                             });
 
                             return {
