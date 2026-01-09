@@ -5,6 +5,7 @@ import express from 'express';
 import APIError from '@/APIError.class';
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_SETTINGS_KEY } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 import { chatService } from '@/roles/openai/Chat.service';
 import type { ModelResolver } from '@/types/resolvers.types';
@@ -26,7 +27,7 @@ export class OpenAIRole extends BaseRole {
     }
 
     public async mount(router: express.Router) {
-        const middlewares = [AgentDataAdapter, AgentLoader, ...this.middlewares];
+        const middlewares = [AgentDataAdapter, AgentLoader, ...this.middlewares, SetAccessAuthTokenMW];
 
         router.post(
             '/v1/chat/completions',
@@ -34,8 +35,8 @@ export class OpenAIRole extends BaseRole {
             validate(chatValidations.chatCompletion),
             async (req: express.Request, res: express.Response) => {
                 try {
-                    const agentData = (req as any)._agentData;
-                    const agentSettings = (req as any)._agentSettings;
+                    const agentData = req._agentData;
+                    const agentSettings = req._agentSettings;
 
                     // Wait for agent settings to be ready
                     await agentSettings?.ready();
@@ -44,20 +45,22 @@ export class OpenAIRole extends BaseRole {
                     const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
                     // Apply model resolution strategy: static string, dynamic function, or default to base model
-                    const model = this.resolve(
-                        this.options?.model,
-                        { baseModel, planInfo: agentData?.planInfo || {} },
-                        baseModel,
-                    );
+                    const model = this.resolve(this.options?.model, { baseModel, planInfo: agentData?.planInfo || {} }, baseModel);
 
                     const authHeader = req.headers['authorization'];
                     const apiKey = extractBearerToken(authHeader);
+
+                    const skillHeaders = {};
+                    if (req.headers['x-auth-token']) {
+                        skillHeaders['X-AUTH-TOKEN'] = req.headers['x-auth-token'];
+                    }
 
                     const result = await chatService.chatCompletion({
                         apiKey,
                         modelId: model,
                         params: req.body,
                         options: req.query,
+                        skillHeaders,
                     });
 
                     if (result instanceof APIError) {

@@ -2,6 +2,7 @@ import axios, { AxiosError } from 'axios';
 import express from 'express';
 
 import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 
 export class FormPreviewRole extends BaseRole {
@@ -105,9 +106,8 @@ export class FormPreviewRole extends BaseRole {
             res.send(agentDataResponse);
         });
 
-        router.post('/call-skill', async (req, res) => {
+        router.post('/call-skill', [SetAccessAuthTokenMW], async (req, res) => {
             const agentData = req._agentData;
-
             const agentId = agentData.id;
             const { componentId, payload, version } = req.body;
 
@@ -130,6 +130,7 @@ export class FormPreviewRole extends BaseRole {
 
             const headers = {
                 'X-AGENT-ID': agentId,
+                'X-AUTH-TOKEN': req.headers['x-auth-token'],
             };
 
             // if version is dev, don't send it

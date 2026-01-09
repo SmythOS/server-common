@@ -1,8 +1,9 @@
 import crypto from 'crypto';
 import { Readable } from 'stream';
 
-import { faker } from '@faker-js/faker';
 import { OpenAI } from 'openai';
+
+import { faker } from '@faker-js/faker';
 
 import { AccessCandidate, ConnectorService, Conversation, Logger } from '@smythos/sdk/core';
 
@@ -18,6 +19,7 @@ interface ChatCompletionParams {
     options?: {
         include_status?: boolean;
     };
+    skillHeaders?: Record<string, string>;
 }
 
 class OpenAIChatService {
@@ -26,6 +28,7 @@ class OpenAIChatService {
         modelId,
         params,
         options,
+        skillHeaders,
     }: ChatCompletionParams): Promise<OpenAI.Chat.Completions.ChatCompletion | Readable | APIError> {
         const { agentId, agentVersion } = getAgentIdAndVersion(params.model);
         console.log('parsed agentId and agentVersion', agentId, agentVersion);
@@ -208,6 +211,7 @@ class OpenAIChatService {
 
             conv.streamPrompt(lastUserMessage?.content as string, {
                 'X-AGENT-ID': agentId,
+                ...skillHeaders,
             }).catch((error) => {
                 readable.emit('error', error);
             });
@@ -217,6 +221,7 @@ class OpenAIChatService {
             const now = Date.now();
             const result = (await conv.prompt(lastUserMessage?.content as string, {
                 'X-AGENT-ID': agentId,
+                ...skillHeaders,
             })) as string;
 
             return {

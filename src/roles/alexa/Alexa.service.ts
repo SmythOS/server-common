@@ -12,12 +12,14 @@ export async function handleAlexaRequest({
     alexRequest,
     agentData,
     serverOrigin,
+    skillHeaders,
 }: {
     isEnabled: boolean;
     model: string;
     alexRequest: any;
     agentData: any;
     serverOrigin: string;
+    skillHeaders: Record<string, string>;
 }) {
     if (!isEnabled) {
         return buildAlexaResponse('Alexa is not enabled for this agent');
@@ -26,7 +28,7 @@ export async function handleAlexaRequest({
         return buildAlexaResponse('Hi I am smythos agent. What can I help you with?');
     }
     const query = alexRequest.slots.searchQuery.heardAs;
-    const agentResponse = await processAlexaSearchQuery({ query, model, agentData, serverOrigin });
+    const agentResponse = await processAlexaSearchQuery({ query, model, agentData, serverOrigin, skillHeaders });
     const response = buildAlexaResponse(agentResponse);
     return response;
 }
@@ -201,11 +203,13 @@ export function processAlexaSearchQuery({
     model,
     agentData,
     serverOrigin,
+    skillHeaders,
 }: {
     query: string;
     model: string;
     agentData: any;
     serverOrigin: string;
+    skillHeaders: Record<string, string>;
 }): Promise<string> {
     return new Promise((resolve, reject) => {
         let result = '';
@@ -234,6 +238,7 @@ export function processAlexaSearchQuery({
                 });
                 conversation.streamPrompt(`${query} ${SPEAKABLE_FORMAT_PROMPT}`, {
                     'X-AGENT-ID': agentData.id,
+                    ...skillHeaders,
                 });
             })
             .catch((error) => {

@@ -10,6 +10,7 @@ export * from './constants';
 export * from './middlewares/AgentLoader.mw';
 export * from './middlewares/CORS.mw';
 export * from './middlewares/RemoveHeadersFactory.mw';
+export * from './middlewares/SetAccessAuthToken.mw';
 export * from './middlewares/UploadHandlerFactory.mw';
 export * from './roles/Base.role';
 export * from './types/resolvers.types';
