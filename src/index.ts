@@ -30,5 +30,8 @@ export * from './roles/openai/utils';
 export * from './roles/openapi/OpenAPI.role';
 export * from './roles/postman/Postman.role';
 export * from './roles/swagger/Swagger.role';
+export * from './roles/voice/voice.helper';
+export * from './roles/voice/Voice.role';
+export * from './roles/voice/websocket.service';
 export * from './roles/openai/middlewares/AgentDataAdapter.mw';
 export * from './roles/openai/middlewares/Validate.mw';
