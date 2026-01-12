@@ -2,6 +2,7 @@ import express from 'express';
 
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_SETTINGS_KEY } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
+import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 import type { ModelResolver, ServerOriginResolver } from '@/types/resolvers.types';
 
@@ -22,7 +23,7 @@ export class AlexaRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.post('/', middlewares, async (req: express.Request, res: express.Response) => {
+        router.post('/', [...middlewares, SetAccessAuthTokenMW], async (req: express.Request, res: express.Response) => {
             try {
                 const agentData = req._agentData;
                 const agentSettings = req._agentSettings;
@@ -42,12 +43,18 @@ export class AlexaRole extends BaseRole {
                 // Apply model resolution strategy: static string, dynamic function, or default to base model
                 const model = this.resolve(this.options?.model, { baseModel, planInfo: agentData?.planInfo || {} }, baseModel);
 
+                const skillHeaders = {};
+                if (req.headers['x-auth-token']) {
+                    skillHeaders['X-AUTH-TOKEN'] = req.headers['x-auth-token'];
+                }
+
                 const response = await handleAlexaRequest({
                     isEnabled,
                     model,
                     alexRequest,
                     agentData,
                     serverOrigin,
+                    skillHeaders,
                 });
 
                 res.json(response);
