@@ -2,11 +2,12 @@ import express from 'express';
 
 import { AgentProcess, ConnectorService } from '@smythos/sdk/core';
 
+import { REALTIME_MODEL, REALTIME_VOICE } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
 import { BaseRole } from '@/roles/Base.role';
 
 import {
-    createSpecInfoFromOpenAPI,
+    buildInstructions,
     createToolsFromOpenAPI,
     getAPIKeyFromVault,
     getErrorStyles,
@@ -15,9 +16,6 @@ import {
     getVoiceEmbodimentInitScript,
 } from './voice.helper';
 import VoiceWebsocketConnectionService from './websocket.service';
-
-const OPENAI_REALTIME_MODEL = 'gpt-realtime';
-const VOICE = 'alloy';
 
 export class VoiceRole extends BaseRole {
     /**
@@ -117,12 +115,17 @@ export class VoiceRole extends BaseRole {
                 const sessionConfig = JSON.stringify({
                     session: {
                         type: 'realtime',
-                        model: OPENAI_REALTIME_MODEL,
+                        model: REALTIME_MODEL,
                         audio: {
                             output: {
-                                voice: VOICE,
+                                voice: REALTIME_VOICE,
                             },
                         },
+                        instructions: buildInstructions({
+                            title: agentData?.name,
+                            description: agentData?.description || '',
+                            behavior: agentData?.behavior || '',
+                        }),
                     },
                 });
 
@@ -148,7 +151,7 @@ export class VoiceRole extends BaseRole {
                 res.json({
                     ephemeralKey: data?.value,
                     expiresAt: data?.expires_at,
-                    model: OPENAI_REALTIME_MODEL,
+                    model: REALTIME_MODEL,
                 });
             } catch (error) {
                 console.error('Error creating ephemeral key:', error);
@@ -192,8 +195,7 @@ export class VoiceRole extends BaseRole {
 
                     if (openAPISpec) {
                         const tools = createToolsFromOpenAPI(openAPISpec, host);
-                        const specInfo = createSpecInfoFromOpenAPI(openAPISpec);
-                        const voiceConfig = getVoiceConfig(specInfo, tools);
+                        const voiceConfig = getVoiceConfig(tools);
 
                         // Send initial session configuration
                         connection.send(JSON.stringify(voiceConfig));
@@ -201,9 +203,6 @@ export class VoiceRole extends BaseRole {
                         connection.send(
                             JSON.stringify({
                                 type: 'response.create',
-                                response: {
-                                    instructions: 'Please introduce yourself with your capabilities briefly. And Speak in English Language',
-                                },
                             }),
                         );
                     }
