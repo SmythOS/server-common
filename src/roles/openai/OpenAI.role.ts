@@ -5,7 +5,6 @@ import express from 'express';
 import APIError from '@/APIError.class';
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_SETTINGS_KEY } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
-import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 import { chatService } from '@/roles/openai/Chat.service';
 import type { ModelResolver } from '@/types/resolvers.types';
@@ -27,7 +26,19 @@ export class OpenAIRole extends BaseRole {
     }
 
     public async mount(router: express.Router) {
-        const middlewares = [AgentDataAdapter, AgentLoader, ...this.middlewares, SetAccessAuthTokenMW];
+        const middlewares = [AgentDataAdapter, AgentLoader, ...this.middlewares];
+
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
 
         router.post(
             '/v1/chat/completions',

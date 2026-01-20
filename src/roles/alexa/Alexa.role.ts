@@ -2,7 +2,6 @@ import express from 'express';
 
 import { DEFAULT_AGENT_MODEL, DEFAULT_AGENT_MODEL_SETTINGS_KEY } from '@/constants';
 import AgentLoader from '@/middlewares/AgentLoader.mw';
-import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 import type { ModelResolver, ServerOriginResolver } from '@/types/resolvers.types';
 
@@ -16,14 +15,29 @@ export class AlexaRole extends BaseRole {
      * @param options.serverOrigin - Server origin URL: string for static, or function to resolve dynamically from request
      * @param options.model - Optional model override: string for static model, or function to resolve model dynamically
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: { serverOrigin: ServerOriginResolver; model?: ModelResolver }) {
+    constructor(
+        middlewares: express.RequestHandler[] = [],
+        options: { serverOrigin: ServerOriginResolver; model?: ModelResolver; beforeMount?: (router: express.Router) => Promise<void> },
+    ) {
         super(middlewares, options);
     }
 
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.post('/', [...middlewares, SetAccessAuthTokenMW], async (req: express.Request, res: express.Response) => {
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
+
+        router.post('/', middlewares, async (req: express.Request, res: express.Response) => {
             try {
                 const agentData = req._agentData;
                 const agentSettings = req._agentSettings;

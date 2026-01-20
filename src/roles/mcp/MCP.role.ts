@@ -7,7 +7,6 @@ import { CallToolRequestSchema, ListToolsRequestSchema, Tool } from '@modelconte
 import { AgentProcess, ConnectorService, Logger } from '@smythos/sdk/core';
 
 import AgentLoader from '@/middlewares/AgentLoader.mw';
-import { SetAccessAuthTokenMW } from '@/middlewares/SetAccessAuthToken.mw';
 import { BaseRole } from '@/roles/Base.role';
 
 import { extractMCPToolSchema, formatMCPSchemaProperties } from './MCP.service';
@@ -33,7 +32,19 @@ export class MCPRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
 
-        router.get('/sse', [...middlewares, SetAccessAuthTokenMW], async (req: express.Request, res: express.Response) => {
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
+
+        router.get('/sse', middlewares, async (req: express.Request, res: express.Response) => {
             try {
                 const agentData = req._agentData;
 

@@ -241,6 +241,9 @@ export class VoiceRole extends BaseRole {
                                                 method: method,
                                                 path: path,
                                                 body: JSON.parse(args),
+                                                headers: {
+                                                    'X-AUTH-TOKEN': req.headers['x-auth-token'],
+                                                },
                                             });
 
                                             const result = toolResponse?.data;
