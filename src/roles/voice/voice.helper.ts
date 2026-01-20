@@ -172,7 +172,7 @@ export const createSpecInfoFromOpenAPI = (openAPI: OpenAPISpec) => {
     };
 };
 
-export const buildInstructions = (specInfo: { title: string; description: string }): string => {
+export const buildInstructions = ({ title, description, behavior }: { title: string; description: string; behavior: string }): string => {
     const baseInstructions = `Speak conversationally and naturally, as if talking to a friend. Use casual language, contractions, and natural speech patterns. Avoid overly formal or robotic language.
 
 IMPORTANT: Before denying any user request, carefully examine all available tools and their capabilities. Many requests that might seem impossible can actually be accomplished using the available tools. Only deny requests if you're certain no available tool can help.
@@ -197,26 +197,22 @@ Your operating over an audio channel so following these instructions is critical
 Keep responses conversational and concise. Break down the information into digestible pieces.
 When using tools, briefly acknowledge what you're doing: "Let me check that for you..." or "I'll look that up..." Then, when you get the results, summarize the key information in a conversational way rather than reading data verbatim. Focus on what's most relevant to the user's question.
 `;
-    if (specInfo) {
-        return `IMPORTANT: When you first connect, introduce yourself naturally. Use the following information (not verbatim) for your identity and introduction: ${specInfo.title}
-optional information about the service: "${specInfo.description}"
-
-${baseInstructions}`;
+    if (title && description) {
+        return `IMPORTANT: When you first connect, introduce yourself ${behavior ? `using the following behavior: "${behavior}"` : 'naturally.'} 
+        
+        Use the following information (not verbatim) for your identity and introduction: ${title} ${description ? `optional information about the service: "${description}"` : ''} 
+        ${baseInstructions}`;
     } else {
-        return `You are a friendly and knowledgeable voice assistant. Speak naturally and conversationally, as if talking to a friend.
-
-${baseInstructions} Start by briefly introducing yourself.`;
+        return `You are a friendly and knowledgeable voice assistant. Speak naturally and conversationally, as if talking to a friend. 
+        ${behavior ? `Use the following behavior: "${behavior}"` : ''} ${baseInstructions} Start by briefly introducing yourself.`;
     }
 };
 
-export const getVoiceConfig = (specInfo: { title: string; description: string }, tools: VoiceTool[]) => {
-    const instructions = buildInstructions(specInfo);
-
+export const getVoiceConfig = (tools: VoiceTool[]) => {
     return {
         type: 'session.update',
         session: {
             type: 'realtime',
-            instructions,
             audio: {
                 input: {
                     turn_detection: {
@@ -225,9 +221,6 @@ export const getVoiceConfig = (specInfo: { title: string; description: string },
                         prefix_padding_ms: 300,
                         silence_duration_ms: 500,
                     },
-                },
-                output: {
-                    voice: 'alloy',
                 },
             },
             tools: tools.map((tool) => ({
