@@ -36,8 +36,6 @@ export class ChatService {
      */
     private enableMetaMessages = false;
     private conversationTurnId = '';
-    private serverOrigin = '';
-    private llmContextStore: ILLMContextStore | undefined;
 
     constructor(req: Request | any, options: IChatServiceOptions) {
         this.agentSettings = req._agentSettings;
@@ -51,8 +49,6 @@ export class ChatService {
         //this.sreAgent = req._agent; // Keep SRE agent for AgentLogger
         this.client_ip = req.header('x-forwarded-for') || req.socket.remoteAddress;
         this.enableMetaMessages = options.enableMetaMessages ?? false;
-        this.serverOrigin = options.serverOrigin || '';
-        this.llmContextStore = options.llmContextStore || undefined;
 
         // Check if model override is provided in header
         const modelOverride = req.header('x-model-id');
@@ -163,7 +159,7 @@ export class ChatService {
         return `turn_${timestamp}_${randomPart}`;
     }
 
-    public async getChatStreaming({ message, callback, headers, abortSignal }: IChatStreaming): Promise<void> {
+    public async getChatStreaming({ message, callback, headers, serverOrigin, llmContextStore, abortSignal }: IChatStreaming): Promise<void> {
         return new Promise<void>((resolve, reject) => {
             this.function_call_order++;
             let errorSent = false; // Flag to prevent duplicate error messages
@@ -189,11 +185,10 @@ export class ChatService {
             (async () => {
                 try {
                     // ✅ Pure SDK approach - no OpenAPI spec needed, SDK handles everything
-                    const baseUrl = this.serverOrigin;
                     const chat: Chat = this.agent.chat({
                         id: this.conversationID,
-                        baseUrl,
-                        persist: this.llmContextStore || undefined,
+                        baseUrl: serverOrigin,
+                        persist: llmContextStore,
                         maxContextSize: this.contextWindow,
                         maxOutputTokens: this.maxOutputTokens,
                     });

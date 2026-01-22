@@ -38,8 +38,6 @@ export interface IChatServiceOptions {
      * @default false
      */
     enableMetaMessages?: boolean;
-    serverOrigin: string;
-    llmContextStore?: ILLMContextStore;
 }
 
 export interface IChatStreaming {
@@ -47,4 +45,6 @@ export interface IChatStreaming {
     callback: (response: IChatResponse) => void;
     headers: Record<string, string>;
     abortSignal?: AbortSignal;
+    serverOrigin: string;
+    llmContextStore?: ILLMContextStore;
 }

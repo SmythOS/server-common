@@ -90,7 +90,7 @@ export class ChatRole extends BaseRole {
                     const agentId = agentData?.id;
                     const llmContextStore = this.resolve(this.options.llmContextStore, { conversationID, agentId });
 
-                    const chatbot = new ChatService(req, { enableMetaMessages, serverOrigin, llmContextStore });
+                    const chatbot = new ChatService(req, { enableMetaMessages });
                     req._chatbot = chatbot;
         
                     await chatbot.init();
@@ -138,6 +138,8 @@ export class ChatRole extends BaseRole {
                             streamStarted = true;
                         },
                         headers,
+                        serverOrigin,
+                        llmContextStore,
                         abortSignal: abortController.signal,
                     });
         
