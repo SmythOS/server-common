@@ -25,7 +25,7 @@ export class ChatRole extends BaseRole {
         middlewares: express.RequestHandler[] = [],
         options: {
             serverOrigin: string | ((req: express.Request) => string);
-            llmContextStore?: ILLMContextStore;
+            llmContextStore?: ({ conversationID, agentId }: { conversationID: string; agentId: string }) => ILLMContextStore;
             authToken?: (req: express.Request) => string;
             env: {
                 UI_SERVER: string;
@@ -64,8 +64,7 @@ export class ChatRole extends BaseRole {
             '/stream',
             async (req, res) => {
                 let streamStarted = false;
-                const agentData = (req as any)._agentData;
-                const agentId = agentData?.id;
+                const agentData = req._agentData;
                 const agentVersion = agentData?.version;
                 const isDebugSession = agentData?.debugSessionEnabled;
                 const requestId = Math.random().toString(36).slice(2, 10).toUpperCase();
@@ -85,9 +84,13 @@ export class ChatRole extends BaseRole {
                     }
 
                     const serverOrigin = this.resolve(this.options.serverOrigin, req);
-        
+
                     //TODO : cache the chatbot instance and reuse it if the request is the same
-                    const chatbot = new ChatService(req, { enableMetaMessages, serverOrigin, llmContextStore: this.options.llmContextStore });
+                    const conversationID = req.header('x-conversation-id') || req.sessionID;
+                    const agentId = agentData?.id;
+                    const llmContextStore = this.resolve(this.options.llmContextStore, { conversationID, agentId });
+
+                    const chatbot = new ChatService(req, { enableMetaMessages, serverOrigin, llmContextStore });
                     req._chatbot = chatbot;
         
                     await chatbot.init();
@@ -223,7 +226,7 @@ export class ChatRole extends BaseRole {
         
                 let authInfo = null;
         
-                if (agentData?.auth) {
+                if (agentData?.auth && agentData?.auth?.method !== 'none') {
                     authInfo = await readAgentOAuthConfig(agentData?.id);
                 }
         

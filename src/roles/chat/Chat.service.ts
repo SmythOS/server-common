@@ -40,9 +40,9 @@ export class ChatService {
     private llmContextStore: ILLMContextStore | undefined;
 
     constructor(req: Request | any, options: IChatServiceOptions) {
-        this.agentSettings = (req as any)._agentSettings;
-        this.agentData = (req as any)._agentData;
-        this.agentVersion = (req as any)._agentVersion;
+        this.agentSettings = req._agentSettings;
+        this.agentData = req._agentData;
+        this.agentVersion = req._agentVersion;
         this.agentId = this.agentData?.id; //from AgentLoader middleware
         this.sessionID = req.sessionID;
         this.conversationID = req.header('x-conversation-id') || req.sessionID;
@@ -193,7 +193,7 @@ export class ChatService {
                     const chat: Chat = this.agent.chat({
                         id: this.conversationID,
                         baseUrl,
-                        persist: this.llmContextStore,
+                        persist: this.llmContextStore || undefined,
                         maxContextSize: this.contextWindow,
                         maxOutputTokens: this.maxOutputTokens,
                     });
