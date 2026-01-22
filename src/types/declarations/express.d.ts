@@ -12,6 +12,7 @@ declare global {
             files?: multer.File[];
             _agentAuthData?: any;
             _isSessionAuthorized?: boolean;
+            agentUrl?: string;
         }
     }
 }

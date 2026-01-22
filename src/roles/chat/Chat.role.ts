@@ -132,7 +132,7 @@ export class ChatRole extends BaseRole {
                             } catch (writeErr) {
                                 console.error('[ChatRouter:stream:write-error]', {
                                     requestId,
-                                    errorMessage: (writeErr as any)?.message,
+                                    errorMessage: writeErr?.message,
                                 });
                             }
                             streamStarted = true;
@@ -146,9 +146,9 @@ export class ChatRole extends BaseRole {
                     console.error('[ChatRouter:stream:error]', {
                         requestId,
                         durationMs: Date.now() - startedAt,
-                        errorMessage: (error as any)?.message,
-                        errorCode: (error as any)?.code,
-                        errorStack: (error as any)?.stack,
+                        errorMessage: error?.message,
+                        errorCode: error?.code,
+                        errorStack: error?.stack,
                         streamStarted,
                     });
                     if (!streamStarted) {
@@ -183,7 +183,7 @@ export class ChatRole extends BaseRole {
                         return res.status(400).json({ error: 'No files uploaded' });
                     }
         
-                    const agentData = (req as any)._agentData;
+                    const agentData = req._agentData;
                     const uploadedFiles = [];
         
                     for (const file of req.files) {
@@ -250,7 +250,7 @@ export class ChatRole extends BaseRole {
                     const hostname = req.hostname || '';
                     const isLocalAgent = hostname.includes('localagent');
         
-                    const AGENT_URL = (req as any).agentUrl;
+                    const AGENT_URL = req.agentUrl;
         
                     const callbackPath = '/emb/auth/callback';
                     const redirectUri = `${AGENT_URL}${callbackPath}`;
