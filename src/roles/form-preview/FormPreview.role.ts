@@ -19,7 +19,7 @@ export class FormPreviewRole extends BaseRole {
         options: {
             port: string | ((req: express.Request) => string | undefined);
             runtimeUrl: string | ((req: express.Request) => string);
-            authToken?: string | ((req: express.Request, agentId: string) => string);
+            authToken?: string | ((req: express.Request) => string);
             beforeMount?: (router: express.Router) => Promise<void>;
         },
     ) {
@@ -107,7 +107,6 @@ export class FormPreviewRole extends BaseRole {
 
         router.post('/call-skill', async (req, res) => {
             const agentData = req._agentData;
-
             const agentId = agentData.id;
             const { componentId, payload, version } = req.body;
 
@@ -117,7 +116,7 @@ export class FormPreviewRole extends BaseRole {
                 res.status(404).send({ error: 'Component not found' });
             }
 
-            const authToken = this.resolve(this.options.authToken, req, agentId);
+            const authToken = this.resolve(this.options.authToken, req);
             const runtimeUrl = this.resolve(this.options.runtimeUrl, req);
 
             let url = `${runtimeUrl}/api/${component.data.endpoint!}`;
@@ -130,6 +129,7 @@ export class FormPreviewRole extends BaseRole {
 
             const headers = {
                 'X-AGENT-ID': agentId,
+                'X-AUTH-TOKEN': req.headers['x-auth-token'],
             };
 
             // if version is dev, don't send it

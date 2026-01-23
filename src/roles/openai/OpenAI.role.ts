@@ -28,14 +28,26 @@ export class OpenAIRole extends BaseRole {
     public async mount(router: express.Router) {
         const middlewares = [AgentDataAdapter, AgentLoader, ...this.middlewares];
 
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
+
         router.post(
             '/v1/chat/completions',
             middlewares,
             validate(chatValidations.chatCompletion),
             async (req: express.Request, res: express.Response) => {
                 try {
-                    const agentData = (req as any)._agentData;
-                    const agentSettings = (req as any)._agentSettings;
+                    const agentData = req._agentData;
+                    const agentSettings = req._agentSettings;
 
                     // Wait for agent settings to be ready
                     await agentSettings?.ready();
@@ -44,20 +56,22 @@ export class OpenAIRole extends BaseRole {
                     const baseModel = agentSettings?.get(DEFAULT_AGENT_MODEL_SETTINGS_KEY) || DEFAULT_AGENT_MODEL;
 
                     // Apply model resolution strategy: static string, dynamic function, or default to base model
-                    const model = this.resolve(
-                        this.options?.model,
-                        { baseModel, planInfo: agentData?.planInfo || {} },
-                        baseModel,
-                    );
+                    const model = this.resolve(this.options?.model, { baseModel, planInfo: agentData?.planInfo || {} }, baseModel);
 
                     const authHeader = req.headers['authorization'];
                     const apiKey = extractBearerToken(authHeader);
+
+                    const skillHeaders = {};
+                    if (req.headers['x-auth-token']) {
+                        skillHeaders['X-AUTH-TOKEN'] = req.headers['x-auth-token'];
+                    }
 
                     const result = await chatService.chatCompletion({
                         apiKey,
                         modelId: model,
                         params: req.body,
                         options: req.query,
+                        skillHeaders,
                     });
 
                     if (result instanceof APIError) {

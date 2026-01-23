@@ -15,12 +15,27 @@ export class AlexaRole extends BaseRole {
      * @param options.serverOrigin - Server origin URL: string for static, or function to resolve dynamically from request
      * @param options.model - Optional model override: string for static model, or function to resolve model dynamically
      */
-    constructor(middlewares: express.RequestHandler[] = [], options: { serverOrigin: ServerOriginResolver; model?: ModelResolver }) {
+    constructor(
+        middlewares: express.RequestHandler[] = [],
+        options: { serverOrigin: ServerOriginResolver; model?: ModelResolver; beforeMount?: (router: express.Router) => Promise<void> },
+    ) {
         super(middlewares, options);
     }
 
     public async mount(router: express.Router) {
         const middlewares = [AgentLoader, ...this.middlewares];
+
+        // It's important to add the middlewares before beforeMount, so that
+        // any custom routes registered in beforeMount will also be protected
+        // by the base middlewares (AgentLoader, etc.)
+        router.use(middlewares);
+
+        // The before-route callback lets consumer projects customize routing.
+        // It can be used to add route-specific middleware, register custom routes,
+        // or apply any setup needed before the routes are initialized when using server-common.
+        if (typeof this.options.beforeMount === 'function') {
+            await this.options.beforeMount(router);
+        }
 
         router.post('/', middlewares, async (req: express.Request, res: express.Response) => {
             try {
@@ -42,12 +57,18 @@ export class AlexaRole extends BaseRole {
                 // Apply model resolution strategy: static string, dynamic function, or default to base model
                 const model = this.resolve(this.options?.model, { baseModel, planInfo: agentData?.planInfo || {} }, baseModel);
 
+                const skillHeaders = {};
+                if (req.headers['x-auth-token']) {
+                    skillHeaders['X-AUTH-TOKEN'] = req.headers['x-auth-token'];
+                }
+
                 const response = await handleAlexaRequest({
                     isEnabled,
                     model,
                     alexRequest,
                     agentData,
                     serverOrigin,
+                    skillHeaders,
                 });
 
                 res.json(response);
