@@ -11,7 +11,6 @@ import { IChatResponse } from './chat.types';
 import { buildConversationId } from './chat.utils';
 import { readAgentOAuthConfig } from './helpers/agent.helper';
 
-// Reuse the same TTL that was used in chatbot upload
 const MAX_TTL_CHAT_FILE_UPLOAD = 60 * 60 * 24 * 1; // 1 day
 
 export class ChatRole extends BaseRole {
@@ -19,6 +18,12 @@ export class ChatRole extends BaseRole {
      * Creates a new ChatRole instance.
      * @param middlewares - Custom middlewares to apply to the role on top of the default middlewares.
      * @param options - Configuration options for the role.
+     * @param options.serverOrigin - Server origin URL or function to resolve it from request.
+     * @param options.llmContextStore - Optional function to retrieve LLM context store from request.
+     * @param options.authToken - Optional function to retrieve authentication token from request.
+     * @param options.env - Environment configuration.
+     * @param options.env.UI_SERVER - UI server URL for initializing debug tools (chatbot debug and OAuth debug).
+     * @param options.env.AGENT_DOMAIN_PORT - Port number returned in chatbot params for local agents.
      * @param options.beforeMount - Optional callback executed before mounting routes, useful for adding custom middleware or routes.
      */
     constructor(
@@ -29,7 +34,6 @@ export class ChatRole extends BaseRole {
             authToken?: (req: express.Request) => string;
             env: {
                 UI_SERVER: string;
-                AGENT_DOMAIN: string;
                 AGENT_DOMAIN_PORT: number;
             };
             beforeMount?: (router: express.Router) => Promise<void>;
@@ -38,14 +42,7 @@ export class ChatRole extends BaseRole {
         super(middlewares, options);
     }
 
-    /**
-     * Mounts the chat endpoints on the provided router.
-     *
-     * Creates routes for the chat embodiment interface.
-     *
-     * @param router - The Express router to mount the endpoints on.
-     */
-    public async mount(router: express.Router) {
+    public async mount(router: express.Router): Promise<void> {
         const middlewares = [AgentLoader, ...this.middlewares];
 
         // It's important to add the middlewares before beforeMount, so that
@@ -94,10 +91,9 @@ export class ChatRole extends BaseRole {
                 const authToken = req.headers['x-auth-token'];
 
                 const agentId = agentData?.id;
-                const headers: Record<string, any> = {
+                const headers: Record<string, string | boolean | string[]> = {
                     'X-AGENT-ID': agentId,
                     'X-AGENT-VERSION': agentVersion,
-                    //'X-AGENT-HAS-ATTACHMENTS': hasAttachments,
                     'x-conversation-id': chatbot.conversationID,
                 };
 
@@ -121,6 +117,11 @@ export class ChatRole extends BaseRole {
 
                 const llmContextStore = this.resolve(this.options.llmContextStore, req);
 
+                const stringHeaders: Record<string, string> = {};
+                for (const [key, value] of Object.entries(headers)) {
+                    stringHeaders[key] = String(value);
+                }
+
                 await chatbot.getChatStreaming({
                     message,
                     callback: (data: IChatResponse) => {
@@ -129,12 +130,12 @@ export class ChatRole extends BaseRole {
                         } catch (writeErr) {
                             console.error('[ChatRouter:stream:write-error]', {
                                 requestId,
-                                errorMessage: writeErr?.message,
+                                errorMessage: writeErr instanceof Error ? writeErr.message : String(writeErr),
                             });
                         }
                         streamStarted = true;
                     },
-                    headers,
+                    headers: stringHeaders,
                     serverOrigin,
                     llmContextStore,
                     abortSignal: abortController.signal,
@@ -142,24 +143,29 @@ export class ChatRole extends BaseRole {
 
                 res.end();
             } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                const errorCode = (error as NodeJS.ErrnoException)?.code;
+                const errorStack = error instanceof Error ? error.stack : undefined;
+
                 console.error('[ChatRouter:stream:error]', {
                     requestId,
                     durationMs: Date.now() - startedAt,
-                    errorMessage: error?.message,
-                    errorCode: error?.code,
-                    errorStack: error?.stack,
+                    errorMessage,
+                    errorCode,
+                    errorStack,
                     streamStarted,
                 });
+
                 if (!streamStarted) {
                     res.status(500).send({
-                        content: error?.message || 'An error occurred. Please try again later.',
+                        content: errorMessage || 'An error occurred. Please try again later.',
                         isError: true,
                         errorType: 'api_error',
                     });
                 } else {
                     // Stream has started - error should have been sent via callback already
                     // Only send connection error if it's a network/connection issue
-                    if (error?.code === 'ECONNRESET' || error?.code === 'ENOTFOUND' || error?.code === 'ETIMEDOUT') {
+                    if (errorCode === 'ECONNRESET' || errorCode === 'ENOTFOUND' || errorCode === 'ETIMEDOUT') {
                         res.write(
                             JSON.stringify({
                                 content: "I'm not able to contact the server. Please try again.",
@@ -337,7 +343,6 @@ export class ChatRole extends BaseRole {
                     introMessage: '${introMessage}',
                     allowAttachments: ${allowAttachments},
                     enableMetaMessages: ${enableMetaMessages},
-                    //domain:'${agentData.id}.${this.options.env.AGENT_DOMAIN}',
                     colors: ${JSON.stringify(colors, null, 2)},
                 });
             </script>
