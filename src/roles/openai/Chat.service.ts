@@ -72,10 +72,10 @@ class OpenAIChatService {
             const id = crypto.randomUUID();
             switch (message.role) {
                 case 'user':
-                    conv.context.addUserMessage(message.content as string, id);
+                    await conv.context.addUserMessage(message.content as string, id);
                     break;
                 case 'assistant':
-                    conv.context.addAssistantMessage(message.content as string, id);
+                    await conv.context.addAssistantMessage(message.content as string, id);
                     break;
             }
         }
