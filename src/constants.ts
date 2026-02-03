@@ -9,3 +9,6 @@ export const REALTIME_VOICE = 'marin';
 
 // the model to use for the realtime api
 export const REALTIME_MODEL = 'gpt-realtime';
+
+// the type of the chatbot embodiment
+export const CHATBOT_EMBODIMENT_TYPE = 'chatBot';
