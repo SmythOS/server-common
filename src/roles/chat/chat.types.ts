@@ -1,35 +1,18 @@
 import { ILLMContextStore } from '@smythos/sdk/core';
 
 export interface IChatResponse {
-    /**
-     * Conversation Turn ID
-     * Groups all AI responses (thinking, function calls, content) for a single user message
-     * Format: turn_{timestamp}_{random}
-     * @example "turn_1735123456789_abc123xyz"
-     */
-    conversationTurnId?: string;
-
     hashId?: string;
-
+    content?: string;
     title?: string;
+    debug?: string;
+    function?: string;
+    parameters?: any[];
+    callParams?: string;
+    function_call?: any;
     isError?: boolean;
     errorType?: string;
-    content?: string;
-    function_call?: {
-        name: string;
-        arguments: any;
-    };
-    /**
-     * Debug function name for UI debugger
-     * Used when debugSessionEnabled is true
-     * @example "updateStatus" | "callParentFunction"
-     */
-    function?: string;
-    debug?: string;
     debugOn?: boolean;
     status_message?: string;
-    callParams?: string;
-    parameters?: any[];
 }
 
 export interface IChatServiceOptions {
