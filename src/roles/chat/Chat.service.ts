@@ -115,20 +115,76 @@ export class ChatService {
     }
 
     /**
-     * Helper method to send error messages as normal content with error flags
-     * @param error - The error object or message
-     * @param errorType - Type of error for categorization
+     * Helper method to send error messages as normal content with error flags.
+     *
+     * Normalizes error objects from all LLM connectors into a stable structure:
+     * - OpenAI / Groq / Anthropic SDK: error.status, error.error.{message, code, type}
+     * - Bedrock (AWS SDK): error.error.$metadata.httpStatusCode, error.error.{message, code}
+     * - Google AI / VertexAI (gRPC): error.errorDetails[1].{message, code}, error.message
+     * - Axios-based (Perplexity, xAI): error.response.{status, data.error.{message, code}}
+     * - AbortError: normalized to status 499, code 'request_aborted'
+     * - Standard Error / string: error.message or the string itself
+     *
+     * @param error - The error object or message from any LLM connector
+     * @param errorType - Caller-supplied category tag ('stream_error' | 'system_error')
      * @param callback - Callback function to send response
      */
     private sendErrorMessage(error: any, errorType: string, callback: (response: IChatResponse) => void) {
-        const apiKeyError = error?.error?.error?.message;
-        const googleApiKeyError = error?.errorDetails && error?.errorDetails[1]?.message;
-        const errorMessage =
-            apiKeyError || googleApiKeyError
-                ? `401 Incorrect API key provided: ${apiKeyError || googleApiKeyError}`
-                : error?.message || error?.code || error || 'An error occurred. Please try again later.';
+        // AbortError — client cancelled the request
+        if (error?.name === 'AbortError') {
+            callback({
+                isError: true,
+                errorType,
+                errorStatus: 499,
+                errorCode: 'request_aborted',
+                content: 'The request was cancelled.',
+            });
+            return;
+        }
 
-        callback({ isError: true, errorType: errorType, content: errorMessage });
+        // ── HTTP status code ──────────────────────────────────────────────────
+        // Priority: SDK error.status → Axios response.status → Bedrock $metadata → fallback 500
+        const status: number =
+            error?.status || error?.response?.status || error?.error?.$metadata?.httpStatusCode || error?.statusCode || 500;
+
+        // ── Machine-readable error code ───────────────────────────────────────
+        // Priority: OpenAI/Anthropic/Bedrock nested → Google gRPC → Axios nested → Node code → status-derived
+        const code: string =
+            error?.error?.error?.type || // OpenAI SDK, Bedrock
+            error?.error?.error?.code || // doubly-nested (legacy)
+            error?.error?.type || // Anthropic SDK error type
+            error?.error?.code || // OpenAI SDK, Bedrock
+            error?.errorDetails?.[1]?.code || // Google AI / VertexAI (gRPC)
+            error?.response?.data?.error?.code || // Axios (xAI, Perplexity raw)
+            error?.code || // Node.js errors (ECONNREFUSED, etc.)
+            (status >= 500
+                ? 'internal_error'
+                : status === 429
+                  ? 'rate_limit_exceeded'
+                  : status === 401 || status === 403
+                    ? 'authentication_error'
+                    : status === 400
+                      ? 'invalid_request'
+                      : 'unknown_error');
+
+        // ── Human-readable message ────────────────────────────────────────────
+        // Priority: SDK nested → Google gRPC → Axios nested → standard Error.message → plain string
+        const message: string =
+            error?.error?.message || // OpenAI / Anthropic / Bedrock nested
+            error?.error?.error?.message || // doubly-nested (legacy)
+            error?.errorDetails?.[1]?.message || // Google AI / VertexAI (gRPC)
+            error?.response?.data?.error?.message || // Axios nested (xAI, Perplexity raw)
+            (typeof error?.message === 'string' && error.message) ||
+            (typeof error === 'string' && error) ||
+            `${code.charAt(0).toUpperCase() + code.slice(1).replace(/_/g, ' ')} (${status})`;
+
+        callback({
+            isError: true,
+            errorType,
+            errorStatus: status,
+            errorCode: code,
+            content: message,
+        });
     }
 
     /**
