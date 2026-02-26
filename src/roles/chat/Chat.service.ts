@@ -137,7 +137,7 @@ export class ChatService {
                 errorType,
                 errorStatus: 499,
                 errorCode: 'request_aborted',
-                content: 'The request was cancelled.',
+                content: '[499/request_aborted] The request was cancelled.',
             });
             return;
         }
@@ -183,7 +183,7 @@ export class ChatService {
             errorType,
             errorStatus: status,
             errorCode: code,
-            content: message,
+            content: `[${status}/${code}] ${message}`,
         });
     }
 
