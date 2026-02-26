@@ -11,6 +11,10 @@ export interface IChatResponse {
     function_call?: any;
     isError?: boolean;
     errorType?: string;
+    /** HTTP-equivalent status code for the error (e.g. 400, 429, 500). Present when isError is true. */
+    errorStatus?: number;
+    /** Machine-readable error code (e.g. 'rate_limit_exceeded', 'invalid_request'). Present when isError is true. */
+    errorCode?: string;
     debugOn?: boolean;
     status_message?: string;
 }
