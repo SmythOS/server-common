@@ -8,7 +8,7 @@ export const DEFAULT_AGENT_MODEL = 'gpt-4o-mini';
 export const REALTIME_VOICE = 'marin';
 
 // the model to use for the realtime api
-export const REALTIME_MODEL = 'gpt-realtime';
+export const REALTIME_MODEL = 'gpt-realtime-1.5';
 
 // the type of the chatbot embodiment
 export const CHATBOT_EMBODIMENT_TYPE = 'chatBot';
